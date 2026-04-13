@@ -1,0 +1,27 @@
+{
+  "name": "allo-canada",
+  "version": "1.0.0",
+  "description": "Plateforme d'assistance IA à l'immigration au Canada",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "canada",
+    "immigration",
+    "ai",
+    "assistant"
+  ],
+  "author": "ALLO CANADA",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.103.0",
+    "@xenova/transformers": "^2.17.2",
+    "sharp": "^0.34.5"
+  }
+}

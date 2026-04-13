@@ -1,0 +1,945 @@
+// 0. DOM Elements
+const chatMessages = document.getElementById('chat-messages');
+const messagesInner = document.getElementById('messages-inner');
+const chatInput = document.getElementById('chat-input');
+const sendButton = document.getElementById('send-button');
+const sessionsList = document.getElementById('sessions-list');
+
+// 1. Supabase Connection (Shared with auth.js)
+const dbClient = getSupabase();
+
+// Data state
+let sessions = JSON.parse(localStorage.getItem('allo_canada_sessions')) || [];
+let currentSessionId = null;
+let currentHistory = [];
+let currentUser = null;
+
+// Guest question limit
+const GUEST_QUESTION_LIMIT = 5;
+let guestQuestionCount = parseInt(localStorage.getItem('allo_canada_guest_questions') || '0');
+
+// Document attachment state
+let pendingDocumentText = null;
+let pendingDocumentName = null;
+
+/**
+ * Initialize the app
+ */
+async function init() {
+    // Small wait to ensure auth state is settled
+    await new Promise(r => setTimeout(r, 100));
+    try {
+        currentUser = await getCurrentUser();
+    } catch (err) {
+        console.error("Erreur lors de la récupération de l'utilisateur:", err);
+    }
+    updateAuthUI();
+    updateGuestLimitUI();
+
+    // Check if we should start a chat from URL
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q');
+
+    if (query) {
+        // Clean URL so it doesn't resubmit on refresh
+        window.history.replaceState({}, document.title, window.location.pathname);
+        startNewChat(query);
+    } else {
+        // If logged in, sync sessions
+        if (currentUser) {
+            await mergeGuestSessions(); // Move guest data to DB
+            await fetchUserSessions(); // Refresh from DB
+        } else {
+            renderSessions(); // For guests, show empty/local
+        }
+        startNewChat();
+    }
+}
+
+/**
+ * Update UI based on auth state
+ */
+function updateAuthUI() {
+    const footer = document.getElementById('sidebar-auth-footer');
+    if (!footer) return;
+
+    if (currentUser) {
+        footer.innerHTML = `
+            <div style="padding: 12px; background: var(--neutral-100); border-radius: var(--radius-md); margin-bottom: 12px;">
+                <div style="font-size: 11px; color: var(--neutral-500); margin-bottom: 4px;">Connecté en tant que</div>
+                <div style="font-size: 13px; font-weight: 600; color: var(--neutral-800); overflow: hidden; text-overflow: ellipsis;">
+                    ${currentUser.user_metadata?.full_name || currentUser.email}
+                </div>
+                <button onclick="handleLogout()" style="background:none; border:none; color:var(--primary); font-size:12px; padding:0; margin-top:8px; cursor:pointer; font-weight:500">Se déconnecter</button>
+            </div>
+            <a href="index.html" style="color:var(--neutral-600); font-size:14px; display:flex; align-items:center; gap:10px">
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+               Retour à l'accueil
+            </a>
+        `;
+    }
+}
+
+/**
+ * Start a new chat session
+ */
+function startNewChat(initialQuery = null) {
+
+    currentSessionId = Date.now().toString();
+    currentHistory = [];
+    const isReturningUser = sessions.length > 0 && currentUser;
+
+    // Determine greeting based on time of day
+    const hour = new Date().getHours();
+    const greeting = (hour >= 18 || hour < 5) ? "Bonsoir" : "Bonjour";
+
+    messagesInner.innerHTML = `
+        <div class="empty-chat-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary); margin-bottom: 20px;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <h2>${isReturningUser
+            ? `${greeting}! heureux de vous revoir, comment pouvons-nous vous aider aujourd'hui ?`
+            : "Démarrer votre première conversation avec notre assistant virtuel d'immigration Canada."}</h2>
+            <p style="color: var(--neutral-500); margin-top: 12px;">
+                ${isReturningUser
+            ? "Posez votre question ci-dessous pour continuer nos échanges."
+            : "Posez vos questions sur Entrée express, Mobilité francophone, Preuve de fonds..."}
+            </p>
+        </div>
+    `;
+
+    if (initialQuery) {
+        chatInput.value = initialQuery;
+        handleChatSubmit(new Event('submit'));
+    }
+
+    renderSessions();
+    const toggle = document.getElementById('sidebar');
+    if (toggle) toggle.classList.remove('open'); // Close on mobile
+}
+
+/**
+ * Handle message submission
+ */
+async function handleChatSubmit(e) {
+    if (e) e.preventDefault();
+
+    const message = chatInput.value.trim();
+    if (!message || sendButton.disabled) return;
+
+    // Guest question limit check
+    if (!currentUser && guestQuestionCount >= GUEST_QUESTION_LIMIT) {
+        document.getElementById('limit-modal-overlay').classList.add('open');
+        return;
+    }
+
+    // If no current session, start one
+    if (!currentSessionId) {
+        currentSessionId = Date.now().toString();
+    }
+
+    // Prepare Document context
+    let messageToSend = message;
+    let uiMessage = message;
+
+    if (pendingDocumentText) {
+        // Enclose document in prompt
+        messageToSend = `[DOCUMENT JOINT PAR L'UTILISATEUR: ${pendingDocumentName}]\n${pendingDocumentText}\n\n[QUESTION DE L'UTILISATEUR]\n${message}`;
+        uiMessage = `📎 **${pendingDocumentName}**\n\n${message}`;
+    }
+
+    // Update UI
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+    const inputContainer = document.querySelector('.chat-input-box');
+    if (inputContainer) inputContainer.classList.remove('is-multiline');
+
+    // Remove the startup "empty state" banner when the first message is sent
+    if (currentHistory.length === 0) {
+        messagesInner.innerHTML = '';
+    }
+
+    addMessageToUI('user', uiMessage);
+
+    // Update data (store the simple UI message to save history space, we don't store full document long-term)
+    currentHistory.push({ role: 'user', content: uiMessage });
+
+    // Save session locally FIRST so DB script finds it
+    if (currentHistory.length === 1) {
+        saveSession(uiMessage);
+    } else {
+        saveSession();
+    }
+    
+    saveMessageToDB('user', uiMessage); // SYNC DB
+
+    // Clear document state
+    const docTextBeingSent = pendingDocumentText;
+    removeAttachedFile();
+
+    toggleLoading(true);
+
+    // Capture the current session ID to track if the user switches/deletes it during the wait
+    const activeSessionIdAtSubmit = currentSessionId;
+
+    try {
+        // We pass messageToSend which contains the full doc, but keep currentHistory as is
+        const aiData = await getAIResponse(messageToSend, currentHistory);
+
+        // If the user navigated away from or deleted this session while AI was thinking, abort saving
+        if (currentSessionId !== activeSessionIdAtSubmit) {
+            return;
+        }
+
+        // Update UI
+        addMessageToUI('assistant', aiData.reply);
+
+        // Render suggestion chips if available
+        if (aiData.suggestions && aiData.suggestions.length > 0) {
+            renderSuggestions(aiData.suggestions);
+        }
+
+        // Update data
+        currentHistory.push({ role: 'assistant', content: aiData.reply });
+        saveMessageToDB('assistant', aiData.reply); // SYNC DB
+
+        // Update local session history
+        saveSession();
+
+        // Increment guest question counter
+        if (!currentUser) {
+            guestQuestionCount++;
+            localStorage.setItem('allo_canada_guest_questions', guestQuestionCount.toString());
+            updateGuestLimitUI();
+
+            // Trigger modal proactively after 5th response
+            if (guestQuestionCount >= GUEST_QUESTION_LIMIT) {
+                setTimeout(() => {
+                    document.getElementById('limit-modal-overlay').classList.add('open');
+                }, 1500); // Small delay so they can read the last message first
+            }
+        }
+
+    } catch (error) {
+        if (currentSessionId === activeSessionIdAtSubmit) {
+            console.error("Erreur chat:", error);
+            const displayError = error.message || "Une erreur est survenue.";
+            addMessageToUI('assistant', `${displayError}. Veuillez réessayer ou vérifier votre connexion.`);
+        }
+    } finally {
+        if (currentSessionId === activeSessionIdAtSubmit) {
+            toggleLoading(false);
+        }
+    }
+}
+
+/**
+ * Handle document attachments
+ */
+const fileInput = document.getElementById('file-upload-input');
+const fileIndicator = document.getElementById('file-indicator');
+const fileNameDisplay = document.getElementById('file-name-display');
+
+if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        pendingDocumentName = file.name;
+        fileNameDisplay.textContent = 'Extraction en cours...';
+        fileIndicator.classList.add('active');
+
+        try {
+            if (file.type === 'application/pdf') {
+                pendingDocumentText = await extractTextFromPDF(file);
+            } else if (file.name.endsWith('.txt')) {
+                pendingDocumentText = await file.text();
+            } else {
+                throw new Error("Format non supporté. Veuillez utiliser PDF ou TXT.");
+            }
+            fileNameDisplay.textContent = pendingDocumentName;
+        } catch (error) {
+            console.error(error);
+            alert("Erreur: " + error.message);
+            removeAttachedFile();
+        }
+    });
+}
+
+function removeAttachedFile() {
+    pendingDocumentText = null;
+    pendingDocumentName = null;
+    if (fileIndicator) fileIndicator.classList.remove('active');
+    if (fileInput) fileInput.value = '';
+}
+
+async function extractTextFromPDF(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+
+    // Limit to 10 pages to avoid overwhelming the prompt
+    const maxPages = Math.min(pdf.numPages, 10);
+    for (let i = 1; i <= maxPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\\n';
+    }
+    return fullText;
+}
+
+/**
+ * Save current session to LocalStorage
+ */
+function saveSession(firstMessage = null) {
+    const sessionIndex = sessions.findIndex(s => s.id === currentSessionId);
+    let existingSession = sessionIndex > -1 ? sessions[sessionIndex] : null;
+
+    let title = existingSession ? existingSession.title : "Discussion";
+    
+    if (!existingSession && firstMessage) {
+        const sanitizedTitle = firstMessage.replace(/[\n\r]/g, ' ').trim();
+        title = sanitizedTitle.substring(0, 30) + (sanitizedTitle.length > 30 ? '...' : '');
+    }
+
+    const sessionData = {
+        id: currentSessionId,
+        title: title,
+        history: currentHistory,
+        updatedAt: new Date().toISOString(),
+        dbId: existingSession ? existingSession.dbId : undefined
+    };
+
+    if (existingSession) {
+        sessions[sessionIndex] = sessionData;
+    } else {
+        sessions.unshift(sessionData);
+    }
+
+    localStorage.setItem('allo_canada_sessions', JSON.stringify(sessions));
+    renderSessions();
+}
+
+/**
+ * Load a specific session
+ */
+function loadSession(id) {
+    const session = sessions.find(s => s.id === id);
+    if (!session) return;
+
+    currentSessionId = id;
+    currentHistory = session.history;
+
+    // Clear and render history
+    messagesInner.innerHTML = '';
+    currentHistory.forEach(msg => {
+        addMessageToUI(msg.role, msg.content, false); // false = don't animate old messages
+    });
+
+    renderSessions();
+    const toggle = document.getElementById('sidebar');
+    if (toggle) toggle.classList.remove('open');
+}
+
+/**
+ * Render sidebar sessions list
+ */
+function renderSessions() {
+    sessionsList.innerHTML = '';
+
+    // Privacy: If not logged in, sessions list must be empty as per user requirement
+    if (!currentUser) {
+        sessionsList.innerHTML = '<div class="session-item active">Nouvelle discussion</div>';
+        return;
+    }
+
+    // New Chat placeholder if empty
+    if (sessions.length === 0) {
+        sessionsList.innerHTML = '<div class="session-item active">Nouvelle discussion</div>';
+        return;
+    }
+
+    sessions.forEach(session => {
+        const item = document.createElement('div');
+        item.className = `session-item ${session.id === currentSessionId ? 'active' : ''}`;
+        item.dataset.id = session.id;
+        
+        item.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span style="flex:1; overflow:hidden; text-overflow:ellipsis">${session.title}</span>
+            <button class="session-options-btn" title="Options">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+            </button>
+            <div class="session-dropdown" id="dropdown-${session.id}">
+                <button class="dropdown-item" data-action="rename">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    Renommer
+                </button>
+                <button class="dropdown-item" data-action="copy">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Copier le texte
+                </button>
+                <button class="dropdown-item danger" data-action="delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Supprimer
+                </button>
+            </div>
+        `;
+
+        sessionsList.appendChild(item);
+    });
+}
+
+// Event Delegation for Sessions List
+if (sessionsList) {
+    sessionsList.onclick = (e) => {
+        const item = e.target.closest('.session-item');
+        if (!item) return;
+
+        const id = item.dataset.id;
+        const session = sessions.find(s => s.id === id);
+
+        // Options Button
+        if (e.target.closest('.session-options-btn')) {
+            e.stopPropagation();
+            toggleSessionMenu(id);
+            return;
+        }
+
+        // Dropdown Items
+        const actionBtn = e.target.closest('.dropdown-item');
+        if (actionBtn) {
+            e.stopPropagation();
+            const action = actionBtn.dataset.action;
+            if (action === 'rename') openRenameModal(id, session.title);
+            if (action === 'copy') copySession(id);
+            if (action === 'delete') deleteSession(id);
+            return;
+        }
+
+        // Just clicking the item loads the session
+        if (id !== currentSessionId) loadSession(id);
+    };
+}
+
+/**
+ * Toggle session options menu
+ */
+function toggleSessionMenu(id) {
+    // Close other menus
+    document.querySelectorAll('.session-dropdown').forEach(d => {
+        if (d.id !== `dropdown-${id}`) d.classList.remove('active');
+    });
+
+    const dropdown = document.getElementById(`dropdown-${id}`);
+    if (dropdown) dropdown.classList.toggle('active');
+}
+
+/**
+ * Rename a session
+ */
+function openRenameModal(id, currentTitle) {
+    const overlay = document.getElementById('rename-modal-overlay');
+    const input = document.getElementById('rename-input');
+    const cancelBtn = document.getElementById('rename-cancel');
+    const confirmBtn = document.getElementById('rename-confirm');
+
+    input.value = currentTitle;
+    overlay.classList.add('open');
+    input.focus();
+
+    const cleanup = () => {
+        overlay.classList.remove('open');
+        confirmBtn.removeEventListener('click', onConfirm);
+        cancelBtn.removeEventListener('click', cleanup);
+    };
+
+    const onConfirm = () => {
+        const newTitle = input.value.trim();
+        if (newTitle && newTitle !== currentTitle) {
+            const index = sessions.findIndex(s => s.id === id);
+            if (index > -1) {
+                const oldTitle = sessions[index].title;
+                sessions[index].title = newTitle;
+                localStorage.setItem('allo_canada_sessions', JSON.stringify(sessions));
+                renderSessions();
+                showToast("Discussion renommée");
+
+                // Sync to DB if available
+                if (currentUser && sessions[index].dbId && dbClient) {
+                    dbClient
+                        .from('conversations')
+                        .update({ session_id: newTitle }) // We use session_id as title in DB
+                        .eq('id', sessions[index].dbId)
+                        .then(({ error }) => {
+                            if (error) {
+                                console.error("Rename sync error:", error);
+                                showToast("Erreur de synchronisation (Renommage)", true);
+                                // Optional: revert UI if critical, but toast is enough for now
+                            }
+                        });
+                }
+            }
+        }
+        cleanup();
+    };
+
+    confirmBtn.addEventListener('click', onConfirm);
+    cancelBtn.addEventListener('click', cleanup);
+
+    // Handle Enter key
+    input.onkeydown = (e) => {
+        if (e.key === 'Enter') onConfirm();
+        if (e.key === 'Escape') cleanup();
+    };
+}
+
+/**
+ * Copy session text to clipboard
+ */
+async function copySession(id) {
+    const session = sessions.find(s => s.id === id);
+    if (!session) return;
+
+    const text = session.history.map(m => `${m.role === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.content}`).join('\n\n');
+
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast("Discussion copiée !");
+    } catch (e) {
+        console.error("Erreur copie:", e);
+    }
+}
+
+/**
+ * Merge local guest sessions into Supabase account after login
+ */
+async function mergeGuestSessions() {
+    if (!currentUser) return;
+
+    // Find sessions in localStorage that aren't on DB yet
+    const localSessions = JSON.parse(localStorage.getItem('allo_canada_sessions')) || [];
+    const guestSessions = localSessions.filter(s => !s.dbId);
+
+    if (guestSessions.length === 0) return;
+
+    console.log(`Merging ${guestSessions.length} guest sessions to account...`);
+
+    for (const session of guestSessions) {
+        try {
+            // 1. Create conversation
+            const { data: conv, error: convError } = await dbClient
+                .from('conversations')
+                .insert([{
+                    user_id: currentUser.id,
+                    session_id: session.title || session.id
+                }])
+                .select()
+                .single();
+
+            if (convError) throw convError;
+
+            // 2. Insert all messages for this session
+            if (session.history && session.history.length > 0) {
+                const msgsToInsert = session.history.map(m => ({
+                    conversation_id: conv.id,
+                    role: m.role,
+                    content: m.content
+                }));
+
+                const { error: msgsError } = await dbClient
+                    .from('messages')
+                    .insert(msgsToInsert);
+
+                if (msgsError) throw msgsError;
+            }
+
+            // Mark as synced locally so we don't re-upload
+            session.dbId = conv.id;
+        } catch (e) {
+            console.error("Migration error for session:", e);
+        }
+    }
+
+    // Update localStorage with the new dbIds
+    localStorage.setItem('allo_canada_sessions', JSON.stringify(localSessions));
+}
+
+/**
+ * Fetch all sessions for current user from Supabase
+ */
+async function fetchUserSessions() {
+    if (!currentUser) return;
+
+    try {
+        const { data: convs, error: convError } = await dbClient
+            .from('conversations')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('created_at', { ascending: false });
+
+        if (convError) throw convError;
+        if (!convs) return;
+
+        const newSessions = [];
+
+        for (const conv of convs) {
+            const { data: msgs, error: msgsError } = await dbClient
+                .from('messages')
+                .select('*')
+                .eq('conversation_id', conv.id)
+                .order('created_at', { ascending: true });
+
+            if (msgsError) continue;
+
+            const firstMsgContent = msgs[0]?.content || 'Discussion';
+            const sanitizedTitle = firstMsgContent.replace(/[\n\r]/g, ' ').trim();
+            const fallbackTitle = sanitizedTitle.substring(0, 30) + (sanitizedTitle.length > 30 ? '...' : '');
+            
+            // For older records, session_id in DB contains the title. For newer ones it might be the timestamp.
+            // If it's a number (timestamp), use the fallback title. Else, it is the manual rename so use session_id.
+            let displayTitle = conv.session_id;
+            if (/^\d{13}$/.test(conv.session_id)) {
+                displayTitle = fallbackTitle; 
+            } else if (conv.session_id.length > 30) {
+                displayTitle = conv.session_id.substring(0, 30) + '...';
+            }
+            
+            newSessions.push({
+                id: conv.session_id, // Local ID is just the title, but that breaks UI references somewhat.
+                // Wait, if id is a timestamp, it's fine. If id is "ALLO CANADA", it will render properly still!
+                dbId: conv.id, // Internal DB ID
+                title: displayTitle,
+                history: msgs.map(m => ({ role: m.role, content: m.content }))
+            });
+        }
+
+        sessions = newSessions;
+        localStorage.setItem('allo_canada_sessions', JSON.stringify(sessions));
+        renderSessions();
+        console.log(`Sync successful: ${sessions.length} sessions loaded.`);
+    } catch (e) {
+        console.error("Critical error fetching sessions:", e);
+        showToast("Erreur de synchronisation historique");
+    }
+}
+
+/**
+ * Save current message to DB
+ */
+async function saveMessageToDB(role, content) {
+    if (!currentUser) return;
+
+    // Find or create conversation in DB
+    let session = sessions.find(s => s.id === currentSessionId);
+    if (!session) return;
+
+    try {
+        // 1. Ensure conversation exists in DB
+        if (!session.dbId && dbClient) {
+            const { data: conv, error: convError } = await dbClient
+                .from('conversations')
+                .insert([{
+                    user_id: currentUser.id,
+                    session_id: currentSessionId
+                }])
+                .select()
+                .single();
+
+            if (convError) throw convError;
+            session.dbId = conv.id;
+            // Update local state with DB ID
+            localStorage.setItem('allo_canada_sessions', JSON.stringify(sessions));
+        }
+
+        // 2. Insert message
+        if (dbClient) {
+            const { error: msgError } = await dbClient
+                .from('messages')
+                .insert([{
+                    conversation_id: session.dbId,
+                    role: role,
+                    content: content
+                }]);
+
+            if (msgError) throw msgError;
+        }
+    } catch (e) {
+        console.error("DB Sync Error:", e);
+    }
+}
+
+/**
+ * Show toast notification
+ */
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('visible');
+    setTimeout(() => {
+        toast.classList.remove('visible');
+    }, 2000);
+}
+
+/**
+ * Custom modern confirmation modal
+ */
+function showCustomConfirm() {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('confirm-modal-overlay');
+        const cancelBtn = document.getElementById('msg-confirm-cancel');
+        const proceedBtn = document.getElementById('msg-confirm-proceed');
+
+        overlay.classList.add('open');
+
+        const cleanup = (value) => {
+            overlay.classList.remove('open');
+            cancelBtn.removeEventListener('click', onCancel);
+            proceedBtn.removeEventListener('click', onProceed);
+            resolve(value);
+        };
+
+        const onCancel = () => cleanup(false);
+        const onProceed = () => cleanup(true);
+
+        cancelBtn.addEventListener('click', onCancel);
+        proceedBtn.addEventListener('click', onProceed);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) onCancel();
+        });
+    });
+}
+
+/**
+ * Delete a session
+ */
+async function deleteSession(id) {
+    const confirmed = await showCustomConfirm();
+    if (!confirmed) return;
+
+    try {
+        const sessionToDelete = sessions.find(s => s.id === id);
+
+        // 1. Delete from Supabase if logged in
+        if (currentUser && sessionToDelete && sessionToDelete.dbId && dbClient) {
+            const { error } = await dbClient
+                .from('conversations')
+                .delete()
+                .eq('id', sessionToDelete.dbId);
+            
+            if (error) {
+                console.error("Supabase delete error:", error);
+                showToast("Erreur : Impossible de supprimer sur le serveur", true);
+                return; // Stop here if DB delete failed
+            }
+        }
+
+        // 2. Remove from LocalStorage (Only if DB succeeded or guest)
+        sessions = sessions.filter(s => s.id !== id);
+        localStorage.setItem('allo_canada_sessions', JSON.stringify(sessions));
+
+        // 3. Reset UI immediately
+        if (currentSessionId === id) {
+            startNewChat();
+        } else {
+            renderSessions();
+        }
+        showToast("Discussion supprimée");
+    } catch (e) {
+        console.error("Delete logic error:", e);
+        showToast("Une erreur est survenue lors de la suppression", true);
+    }
+}
+
+
+/**
+ * Update UI for guest question limit
+ */
+function updateGuestLimitUI() {
+    const limitInfo = document.getElementById('guest-limit-info');
+    const remainingCountSpan = document.getElementById('guest-remaining-count');
+
+    if (!limitInfo || !remainingCountSpan) return;
+
+    if (!currentUser) {
+        const remaining = Math.max(0, GUEST_QUESTION_LIMIT - guestQuestionCount);
+        remainingCountSpan.textContent = remaining;
+        limitInfo.style.display = 'block';
+
+        if (remaining === 0) {
+            limitInfo.innerHTML = "Limite de questions atteinte. <span style='text-decoration:underline; cursor:pointer' onclick='window.location.href=\"signup.html\"'>Créez un compte</span> pour continuer.";
+        }
+    } else {
+        limitInfo.style.display = 'none';
+    }
+}
+
+function addMessageToUI(role, text, animate = true) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+    if (!animate) messageDiv.style.animation = 'none';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = role === 'user' ? 'U' : 'AC';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = formatText(text);
+
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(bubble);
+
+    if (role === 'assistant') {
+        const source = document.createElement('div');
+        source.className = 'source-tag';
+        source.innerHTML = `Source : <a href="https://www.canada.ca" target="_blank" style="color:inherit; text-decoration:underline">Canada.ca / IRCC</a>`;
+        bubble.appendChild(source);
+    }
+
+    messagesInner.appendChild(messageDiv);
+
+    // Smooth scroll logic
+    if (role === 'user') {
+        // For user messages, scroll to bottom to see the prompt
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    } else {
+        // For assistant messages, scroll to the START of the message bubble
+        // so the user can read from the beginning without manual scrolling
+        setTimeout(() => {
+            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+    }
+}
+
+/**
+ * Format markdown-like text
+ */
+function formatText(text) {
+    if (!text) return '';
+
+    // Typographie française : espaces insécables avant la ponctuation double
+    // Empêche les ":", "?", "!", ";" de se retrouver seuls à la ligne
+    let processedText = text.replace(/([a-zA-ZéèàùçîïâäöôûüÉÈÀÙÇÎÏÂÄÖÔÛÜ0-9]) ([!?:;])/g, '$1&nbsp;$2');
+
+    if (typeof marked !== 'undefined') {
+        // Optionnellement, désactiver la protection HTML stricte pour autoriser
+        // certains balisages si nécessaire, bien que par défaut c'est sécurisé
+        let parsed = marked.parse(processedText);
+        
+        // Ajouter target="_blank" et class "chat-link" sur tous les liens générés par marked
+        parsed = parsed.replace(/<a href=/g, '<a target="_blank" class="chat-link" href=');
+        
+        return parsed;
+    }
+
+    // Fallback si marked.js ne se charge pas
+    let formatted = processedText
+        // 1. Markdown Links [text](url)
+        .replace(/\[(.*?)\]\((https?:\/\/.*?)\)/g, '<a href="$2" target="_blank" class="chat-link">$1</a>')
+        // 2. Bare URLs (detects http/https not already in an <a> tag)
+        .replace(/(?<!href=")(https?:\/\/[^\s<>"]+)/g, '<a href="$1" target="_blank" class="chat-link">$1</a>')
+        // 3. Bold text **text**
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // 4. Line breaks
+        .replace(/\n/g, '<br>')
+        // 5. Bullets
+        .replace(/- (.*?)(<br>|$)/g, '• $1$2');
+
+    return formatted;
+}
+
+/**
+ * Toggle loading state
+ */
+function toggleLoading(isLoading) {
+    sendButton.disabled = isLoading;
+    if (isLoading) {
+        const typing = document.createElement('div');
+        typing.className = 'message assistant';
+        typing.id = 'typing-indicator';
+        typing.innerHTML = `
+            <div class="avatar">AC</div>
+            <div class="bubble">
+                <div class="thinking-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        `;
+        messagesInner.appendChild(typing);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    } else {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) indicator.remove();
+    }
+}
+
+/**
+ * AI Response from Supabase Edge Function
+ */
+async function getAIResponse(message, history) {
+    try {
+        const { data: { user } } = await dbClient.auth.getUser(); // Ensure fresh user state
+
+        const response = await fetch(`https://cmgzoojrbqpnxmadwkdx.supabase.co/functions/v1/chat`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtZ3pvb2pyYnFwbnhtYWR3a2R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5NDAyMjUsImV4cCI6MjA5MTUxNjIyNX0.aqZTo_81TM_9aFEWKtRCZWsRAD33T08ENLtLg0XqdUU`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                history: history,
+                conversation_id: currentSessionId,
+                user_id: user ? user.id : null
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Erreur réseau');
+        }
+
+        const data = await response.json();
+        return { reply: data.reply, suggestions: data.suggestions || [] };
+
+    } catch (error) {
+        console.error("Erreur de récupération de l'IA:", error);
+        throw error;
+    }
+}
+
+/**
+ * Render suggestion chips after AI response
+ */
+function renderSuggestions(suggestions) {
+    // Remove any existing suggestion chips
+    const existing = document.querySelector('.suggestions-container');
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.className = 'suggestions-container';
+
+    suggestions.forEach(text => {
+        const chip = document.createElement('button');
+        chip.className = 'suggestion-chip';
+        chip.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>${text}</span>
+        `;
+        chip.onclick = () => {
+            // Remove all suggestion chips before submitting
+            container.remove();
+            // Fill the input and submit
+            chatInput.value = text;
+            handleChatSubmit(new Event('submit'));
+        };
+        container.appendChild(chip);
+    });
+
+    messagesInner.appendChild(container);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Initial Run
+init();
