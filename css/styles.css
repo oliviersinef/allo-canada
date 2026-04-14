@@ -105,7 +105,24 @@ button {
   color: var(--neutral-900);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.logo img {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+
+.auth-logo {
+  display: block;
+  margin-bottom: 32px;
+}
+
+.auth-logo img {
+  height: 48px;
+  width: auto;
+  margin: 0 auto;
 }
 
 .logo span {
