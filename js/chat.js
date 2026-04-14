@@ -839,74 +839,20 @@ function formatText(text) {
     if (!text) return '';
 
     // Typographie française : espaces insécables avant la ponctuation double
-    // Empêche les ":", "?", "!", ";" de se retrouver seuls à la ligne
     let processedText = text.replace(/([a-zA-ZéèàùçîïâäöôûüÉÈÀÙÇÎÏÂÄÖÔÛÜ0-9]) ([!?:;])/g, '$1&nbsp;$2');
 
     if (typeof marked !== 'undefined') {
-        // Optionnellement, désactiver la protection HTML stricte pour autoriser
-        // certains balisages si nécessaire, bien que par défaut c'est sécurisé
         let parsed = marked.parse(processedText);
-        
-        // Ajouter target="_blank" et class "chat-link" sur tous les liens générés par marked
         parsed = parsed.replace(/<a href=/g, '<a target="_blank" class="chat-link" href=');
-        
         return parsed;
     }
 
-/**
- * Utility to export an HTML table to CSV
- */
-function exportTableToCSV(tableElement, filename) {
-    let csv = [];
-    const rows = tableElement.querySelectorAll("tr");
-    
-    for (let i = 0; i < rows.length; i++) {
-        const rowData = [];
-        const cols = rows[i].querySelectorAll("td, th");
-        
-        for (let j = 0; j < cols.length; j++) {
-            // Clean text: remove newlines, double spaces, and escape quotes
-            let data = cols[j].innerText
-                .replace(/(\r\n|\n|\r)/gm, " ")
-                .replace(/\s+/g, " ")
-                .trim();
-            
-            // CSV Escape quotes
-            data = data.replace(/"/g, '""');
-            // Wrap in quotes
-            rowData.push('"' + data + '"');
-        }
-        // Join with comma (or semicolon if preferred for French Excel, 
-        // but comma is standard CSV)
-        csv.push(rowData.join(","));
-    }
-
-    const csv_string = csv.join("\n");
-    // BOM for Excel (UTF-8 encoding)
-    const BOM = "\uFEFF";
-    const blob = new Blob([BOM + csv_string], { type: "text/csv;charset=utf-8;" });
-    
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-    // Fallback si marked.js ne se charge pas
+    // Fallback if marked is not available
     let formatted = processedText
-        // 1. Markdown Links [text](url)
         .replace(/\[(.*?)\]\((https?:\/\/.*?)\)/g, '<a href="$2" target="_blank" class="chat-link">$1</a>')
-        // 2. Bare URLs (detects http/https not already in an <a> tag)
         .replace(/(?<!href=")(https?:\/\/[^\s<>"]+)/g, '<a href="$1" target="_blank" class="chat-link">$1</a>')
-        // 3. Bold text **text**
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        // 4. Line breaks
         .replace(/\n/g, '<br>')
-        // 5. Bullets
         .replace(/- (.*?)(<br>|$)/g, '• $1$2');
 
     return formatted;
@@ -1002,6 +948,49 @@ function renderSuggestions(suggestions) {
 
     messagesInner.appendChild(container);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+/**
+ * Utility to export an HTML table to CSV
+ */
+function exportTableToCSV(tableElement, filename) {
+    let csv = [];
+    const rows = tableElement.querySelectorAll("tr");
+    
+    for (let i = 0; i < rows.length; i++) {
+        const rowData = [];
+        const cols = rows[i].querySelectorAll("td, th");
+        
+        if (cols.length === 0) continue; // Skip empty rows
+
+        for (let j = 0; j < cols.length; j++) {
+            // Clean text: remove newlines, double spaces, and escape quotes
+            let data = cols[j].innerText
+                .replace(/(\r\n|\n|\r)/gm, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+            
+            // CSV Escape quotes
+            data = data.replace(/"/g, '""');
+            // Wrap in quotes
+            rowData.push('"' + data + '"');
+        }
+        csv.push(rowData.join(","));
+    }
+
+    const csv_string = csv.join("\n");
+    // BOM for Excel (UTF-8 encoding)
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csv_string], { type: "text/csv;charset=utf-8;" });
+    
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // Global exports for HTML event handlers
