@@ -811,6 +811,24 @@ function addMessageToUI(role, text, animate = true) {
         setTimeout(() => {
             messageDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 50);
+
+        // Scan for tables and add export buttons
+        const tables = bubble.querySelectorAll('table');
+        tables.forEach((table, index) => {
+            const container = document.createElement('div');
+            container.className = 'export-container';
+            
+            const btn = document.createElement('button');
+            btn.className = 'btn-export-table';
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exporter (CSV)
+            `;
+            btn.onclick = () => exportTableToCSV(table, `tableau-allo-canada-${index + 1}.csv`);
+            
+            container.appendChild(btn);
+            table.parentNode.insertBefore(container, table);
+        });
     }
 }
 
@@ -834,6 +852,49 @@ function formatText(text) {
         
         return parsed;
     }
+
+/**
+ * Utility to export an HTML table to CSV
+ */
+function exportTableToCSV(tableElement, filename) {
+    let csv = [];
+    const rows = tableElement.querySelectorAll("tr");
+    
+    for (let i = 0; i < rows.length; i++) {
+        const rowData = [];
+        const cols = rows[i].querySelectorAll("td, th");
+        
+        for (let j = 0; j < cols.length; j++) {
+            // Clean text: remove newlines, double spaces, and escape quotes
+            let data = cols[j].innerText
+                .replace(/(\r\n|\n|\r)/gm, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+            
+            // CSV Escape quotes
+            data = data.replace(/"/g, '""');
+            // Wrap in quotes
+            rowData.push('"' + data + '"');
+        }
+        // Join with comma (or semicolon if preferred for French Excel, 
+        // but comma is standard CSV)
+        csv.push(rowData.join(","));
+    }
+
+    const csv_string = csv.join("\n");
+    // BOM for Excel (UTF-8 encoding)
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csv_string], { type: "text/csv;charset=utf-8;" });
+    
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
     // Fallback si marked.js ne se charge pas
     let formatted = processedText
