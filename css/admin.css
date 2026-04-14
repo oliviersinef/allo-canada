@@ -401,3 +401,76 @@ tbody tr:hover {
     .admin-main { padding: 20px; }
     .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* Activity Cards */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.activity-card {
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    transition: all 0.2s;
+}
+
+.activity-card:hover {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.activity-user-badge {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--neutral-900);
+}
+
+.activity-time-badge {
+    font-size: 11px;
+    color: var(--neutral-400);
+}
+
+.activity-content {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--neutral-700);
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.activity-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.activity-link {
+    font-size: 12px;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.activity-link:hover {
+    text-decoration: underline;
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--neutral-400);
+    padding: 20px;
+    font-style: italic;
+}

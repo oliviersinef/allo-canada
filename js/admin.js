@@ -197,14 +197,20 @@ async function fetchRecentActivity() {
         .order('created_at', { ascending: false })
         .limit(10);
 
-    const container = document.getElementById('recent-activity');
     container.innerHTML = data?.map(m => `
-        <div class="activity-item">
-            <div class="activity-user">${m.conversations?.profiles?.full_name || 'Utilisateur'}</div>
-            <div class="activity-text">${m.content.substring(0, 60)}${m.content.length > 60 ? '...' : ''}</div>
-            <div class="activity-time">${new Date(m.created_at).toLocaleTimeString()}</div>
+        <div class="activity-card">
+            <div class="activity-header">
+                <span class="activity-user-badge">${m.conversations?.profiles?.full_name || 'Utilisateur'}</span>
+                <span class="activity-time-badge">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+            <div class="activity-content">
+                <p>${m.content}</p>
+            </div>
+            <div class="activity-footer">
+                <a href="chat.html?session=${m.conversations?.id}" target="_blank" class="activity-link">Voir la conversation</a>
+            </div>
         </div>
-    `).join('') || '<p>Aucune activité récente</p>';
+    `).join('') || '<p class="empty-state">Aucune activité récente</p>';
 }
 
 /**
@@ -232,9 +238,9 @@ function renderUsersTable(filter = '') {
 
     tbody.innerHTML = filtered.map(u => `
         <tr>
-            <td>${u.full_name || 'Sans nom'}</td>
+            <td style="font-weight:600">${u.full_name || 'Inconnu'}</td>
+            <td>${u.phone || '-'}</td>
             <td>${u.country || '-'}</td>
-            <td>${u.is_admin ? '<span class="badge admin">Admin</span>' : '<span class="badge user">Utilisateur</span>'}</td>
             <td>${new Date(u.created_at).toLocaleDateString()}</td>
         </tr>
     `).join('');
