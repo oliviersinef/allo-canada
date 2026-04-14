@@ -61,25 +61,44 @@ async function init() {
 /**
  * Update UI based on auth state
  */
-function updateAuthUI() {
+async function updateAuthUI() {
     const footer = document.getElementById('sidebar-auth-footer');
-    if (!footer) return;
+    if (!footer || !currentUser) return;
 
-    if (currentUser) {
-        footer.innerHTML = `
-            <div style="padding: 12px; background: var(--neutral-100); border-radius: var(--radius-md); margin-bottom: 12px;">
-                <div style="font-size: 11px; color: var(--neutral-500); margin-bottom: 4px;">Connecté en tant que</div>
-                <div style="font-size: 13px; font-weight: 600; color: var(--neutral-800); overflow: hidden; text-overflow: ellipsis;">
-                    ${currentUser.user_metadata?.full_name || currentUser.email}
-                </div>
-                <button onclick="handleLogout()" style="background:none; border:none; color:var(--primary); font-size:12px; padding:0; margin-top:8px; cursor:pointer; font-weight:500">Se déconnecter</button>
-            </div>
-            <a href="index.html" style="color:var(--neutral-600); font-size:14px; display:flex; align-items:center; gap:10px">
-               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-               Retour à l'accueil
-            </a>
-        `;
+    // Check if user is admin to show dashboard link
+    let isAdmin = false;
+    try {
+        const { data: profile } = await dbClient
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', currentUser.id)
+            .single();
+        isAdmin = profile?.is_admin || false;
+    } catch (e) {
+        console.error("Erreur profile check:", e);
     }
+
+    footer.innerHTML = `
+        <div style="padding: 12px; background: var(--neutral-100); border-radius: var(--radius-md); margin-bottom: 12px;">
+            <div style="font-size: 11px; color: var(--neutral-500); margin-bottom: 4px;">Connecté en tant que</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--neutral-800); overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px;">
+                ${currentUser.user_metadata?.full_name || currentUser.email}
+            </div>
+            
+            ${isAdmin ? `
+                <a href="admin.html" style="display:flex; align-items:center; gap:8px; color:var(--primary); font-size:12px; text-decoration:none; font-weight:600; margin-bottom:8px; padding:6px; background:rgba(26, 86, 219, 0.1); border-radius:4px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line></svg>
+                    Dashboard Admin
+                </a>
+            ` : ''}
+
+            <button onclick="handleLogout()" style="background:none; border:none; color:var(--neutral-500); font-size:12px; padding:0; cursor:pointer; font-weight:500">Se déconnecter</button>
+        </div>
+        <a href="index.html" style="color:var(--neutral-600); font-size:14px; display:flex; align-items:center; gap:10px">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+           Retour à l'accueil
+        </a>
+    `;
 }
 
 /**
