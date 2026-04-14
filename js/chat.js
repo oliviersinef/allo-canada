@@ -537,6 +537,15 @@ async function exportSessionToWord(id) {
         <head>
             <meta charset='utf-8'>
             <title>${session.title}</title>
+            <!--[if gte mso 9]>
+            <xml>
+                <w:WordDocument>
+                    <w:View>Print</w:View>
+                    <w:Zoom>100</w:Zoom>
+                    <w:DoNotOptimizeForBrowser/>
+                </w:WordDocument>
+            </xml>
+            <![endif]-->
             <style>
                 body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1F2937; padding: 40pt; }
                 .header-section { text-align: center; border-bottom: 3pt solid #E02424; padding-bottom: 20pt; margin-bottom: 40pt; }
