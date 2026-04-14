@@ -381,6 +381,10 @@ function renderSessions() {
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                     Copier le texte
                 </button>
+                <button class="dropdown-item" data-action="export-word">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Exporter en Word
+                </button>
                 <button class="dropdown-item danger" data-action="delete">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     Supprimer
@@ -415,6 +419,7 @@ if (sessionsList) {
             const action = actionBtn.dataset.action;
             if (action === 'rename') openRenameModal(id, session.title);
             if (action === 'copy') copySession(id);
+            if (action === 'export-word') exportSessionToWord(id);
             if (action === 'delete') deleteSession(id);
             return;
         }
@@ -511,6 +516,87 @@ async function copySession(id) {
     } catch (e) {
         console.error("Erreur copie:", e);
     }
+}
+
+/**
+ * Export session to Word-compatible HTML file (.doc)
+ */
+async function exportSessionToWord(id) {
+    const session = sessions.find(s => s.id === id);
+    if (!session) return;
+
+    // Word XML / HTML Header
+    const header = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+              xmlns:w='urn:schemas-microsoft-com:office:word' 
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+            <meta charset='utf-8'>
+            <title>${session.title}</title>
+            <style>
+                body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+                .header { text-align: center; border-bottom: 2px solid #E02424; padding-bottom: 20px; margin-bottom: 30px; }
+                .title { font-size: 24pt; font-weight: bold; color: #E02424; margin-bottom: 5pt; }
+                .subtitle { font-size: 10pt; color: #666; }
+                .message { margin-bottom: 25pt; page-break-inside: avoid; }
+                .role-user { font-weight: bold; color: #1A56DB; font-size: 12pt; margin-bottom: 5pt; }
+                .role-assistant { font-weight: bold; color: #10A37F; font-size: 12pt; margin-bottom: 5pt; }
+                .content { font-size: 11pt; }
+                table { border-collapse: collapse; width: 100%; margin: 15pt 0; }
+                th, td { border: 1pt solid #ddd; padding: 8pt; text-align: left; font-size: 10pt; }
+                th { background-color: #f8f9fa; font-weight: bold; }
+                .footer { margin-top: 50pt; font-size: 9pt; color: #999; text-align: center; border-top: 1pt solid #eee; padding-top: 10pt; }
+            </style>
+        </head>
+        <body>
+            <div class='header'>
+                <div class='title'>ALLO CANADA</div>
+                <div class='subtitle'>Assistant Virtuel d'Immigration</div>
+                <div style='margin-top: 10pt;'>Discussion : ${session.title}</div>
+            </div>
+    `;
+
+    let body = "";
+    session.history.forEach(m => {
+        const roleLabel = m.role === 'user' ? 'Vous' : 'Allo Canada';
+        const roleClass = m.role === 'user' ? 'role-user' : 'role-assistant';
+        
+        // Use formatText but clean it up for Word (remove potential scripts/complex tags)
+        let htmlContent = formatText(m.content);
+        
+        body += `
+            <div class='message'>
+                <div class='${roleClass}'>${roleLabel}</div>
+                <div class='content'>${htmlContent}</div>
+            </div>
+        `;
+    });
+
+    const footer = `
+            <div class='footer'>
+                Document généré par Allo Canada - ${new Date().toLocaleDateString('fr-FR')} ${new Date().toLocaleTimeString('fr-FR')}<br>
+                Vérifiez toujours les informations officielles sur Canada.ca
+            </div>
+        </body>
+        </html>
+    `;
+
+    const fullHtml = header + body + footer;
+    
+    // Create Blob and Download
+    const blob = new Blob(['\ufeff', fullHtml], {
+        type: 'application/msword'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `discussion-canada-${session.title.toLowerCase().replace(/\s+/g, '-')}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast("Exportation Word lancée");
 }
 
 /**
