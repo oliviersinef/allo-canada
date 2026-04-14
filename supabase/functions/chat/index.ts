@@ -419,7 +419,7 @@ serve(async (req: Request) => {
                - Un des organismes les plus anciens au Canada
                - Reconnu pour son expertise académique
                
-            4. IQAS (International Qualifications Assessment Service) - Alberta
+            4. IQAS (International Qualifications Assessment Service - Alberta)
                → https://www.alberta.ca/iqas
                - Service gouvernemental de l'Alberta
                - Gratuit pour les résidents de l'Alberta dans certains cas
@@ -432,6 +432,23 @@ serve(async (req: Request) => {
             - Choisir l'évaluation "pour fins d'immigration à IRCC"
             - Les documents originaux doivent être envoyés directement par l'établissement d'enseignement
             - Le coût varie entre 200-300 CAD selon l'organisme`
+          },
+          {
+            url: 'https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/entree-express/admissibilite/cnp-2021.html',
+            title: 'Mise à jour CNP 2021 - Codes à 5 chiffres',
+            content: `TRANSITION CNP 2016 VERS CNP 2021 (IRCC) :
+            Depuis le 16 novembre 2022, IRCC utilise exclusivement la Classification nationale des professions (CNP) 2021.
+            
+            RÈGLE DE FORMAT :
+            - Les nouveaux codes comportent 5 CHIFFRES.
+            - L'ancien format à 4 chiffres (CNP 2016) est désormais OBSOLÈTE pour les nouvelles demandes.
+            
+            EXEMPLES DE MISE À JOUR :
+            - Graphistes et illustrateurs : Ancien code 5241 → Nouveau code 52120 (FEER 2).
+            - Développeurs Web : Ancien code 2175 → Nouveau code 21234 (FEER 2).
+            - Adjoints de direction : Ancien code 1222 → Nouveau code 12100 (FEER 2).
+            
+            CONSIGNE CRITIQUE : Ne jamais donner de code à 4 chiffres. Si tu identifies une profession, assure-toi de fournir le code à 5 chiffres de la CNP 2021.`
           }
         ];
 
@@ -605,6 +622,7 @@ INSTRUCTIONS DE RÉPONSE :
 4. RÈGLE ABSOLUE - LIEN ÉVALUATION LINGUISTIQUE : Lorsque tu parles de tests de langue, compétences linguistiques, NCLC, CLB, TCF, TEF, IELTS, CELPIP ou PTE, tu DOIS utiliser UNIQUEMENT ce lien : https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/programme-immigration-atlantique/evaluation-competences-linquistiques.html
    NE JAMAIS utiliser le lien "documents-justificatifs-equivalences-langues" ni aucun autre lien inventé. Le seul lien autorisé pour l'évaluation linguistique est celui ci-dessus. C'est NON NÉGOCIABLE.
 5. CONCISION ET FOCUS : Réponds directement à la question posée sans déborder sur d'autres sujets. Si la question est simple, la réponse doit être brève. N'élabore pas de plan complet (ex: 1. Trouver un emploi, 2. Immigration, 3. Prochaines étapes) sauf si cela est spécifiquement demandé.
+6. CNP 2021 (RÈGLE CRITIQUE) : Depuis novembre 2022, tous les codes CNP doivent comporter 5 CHIFFRES. N'utilise JAMAIS les anciens codes à 4 chiffres (CNP 2016). Si un utilisateur cite un code à 4 chiffres (ex: 5241), corrige-le gentiment en lui donnant le code CNP 2021 correspondant (ex: 52120).
 
 IMPORTANT - BARÈMES LINGUISTIQUES (PRIORITÉ ABSOLUE) :
 [TCF CANADA]
@@ -670,7 +688,7 @@ RÉPERTOIRE DE LIENS OFFICIELS (OBLIGATOIRE - NE JAMAIS INVENTER DE LIENS)
   → Utiliser quand : le candidat parle d'évaluation de diplômes, WES, EDE, ECA, équivalence de diplômes pour Entrée Express
 
 • Calcul admissibilité 67 points (PTQF) : https://www.nvimmigration.ca/67-calculator/
-  → Utiliser quand : le candidat veut savoir s'il atteint 67/100 pour le Programme des travailleurs qualifiés fédéral. Tu DOIS aussi être capable de calculer les 67 points toi-même en posant les questions sur les 6 facteurs (langue, éducation, expérience, âge, emploi réservé, adaptabilité).
+  → Utiliser quand : le candidat veut savoir s'il atteint 67/100 pour le Programme des travailleurs qualifiés féderal. Tu DOIS aussi être capable de calculer les 67 points toi-même en posant les questions sur les 6 facteurs (langue, éducation, expérience, âge, emploi réservé, adaptabilité).
 
 • Simulation score CRS/SCG Entrée Express : https://www.cic.gc.ca/francais/immigrer/qualifie/scg-outil.asp
   → Utiliser quand : le candidat veut simuler son score CRS sur 1200 points. Tu DOIS aussi être capable de faire une estimation du score CRS en posant les questions pertinentes au candidat.
@@ -686,7 +704,7 @@ RÉPERTOIRE DE LIENS OFFICIELS (OBLIGATOIRE - NE JAMAIS INVENTER DE LIENS)
   → Utiliser quand : le candidat veut simuler son score pour le PRTQ du Québec. Tu DOIS connaître les facteurs de sélection Arrima.
 
 • Déclaration d'intérêt Arrima : https://www.quebec.ca/immigration/services-en-ligne
-  → Utiliser quand : le candidat veut soumettre une déclaration d'intérêt pour immigrer au Québec.
+  → Utiliser quand : le candidat veut soumettre une déclaration d’intérêt pour immigrer au Québec.
 
 • Portail Arrima (informations immigration Québec) : https://arrima.immigration-quebec.gouv.qc.ca
   → Utiliser quand : le candidat cherche des informations générales sur les programmes d'immigration du Québec (PRTQ, PEQ, CSQ).
@@ -698,7 +716,7 @@ RÉPERTOIRE DE LIENS OFFICIELS (OBLIGATOIRE - NE JAMAIS INVENTER DE LIENS)
 • IQAS (International Qualifications Assessment Service - Alberta) : https://www.alberta.ca/iqas
   → Utiliser quand : le candidat demande où faire évaluer ses diplômes, quels organismes sont agréés par IRCC, ou comment faire une équivalence de diplômes.
 
---- PLATEFORMES DE RECHERCHE D'EMPLOI AU CANADA ---
+--- PLATEFORMES DE RECHERCHE D’EMPLOI AU CANADA ---
 Lorsqu'un candidat cherche un emploi au Canada, propose les plateformes suivantes en fonction de son profil :
 
 PLATEFORMES GÉNÉRALISTES (tout le Canada) :
@@ -708,8 +726,8 @@ PLATEFORMES GÉNÉRALISTES (tout le Canada) :
 • Talent.com : https://www.talent.com — Agrégateur d'offres couvrant tout le Canada, informations salariales, postes dans tous les secteurs.
 • Workopolis : https://www.workopolis.com — Plateforme historique canadienne d'emploi, couvre tout le pays.
 • Monster Canada : https://www.monster.ca — Plateforme internationale présente au Canada, tout types d'emplois.
-• Glassdoor Canada : https://www.glassdoor.ca — Offres d'emploi + avis sur les entreprises et salaires, utile pour comparer les employeurs avant de postuler.
-• Eluta.ca : https://www.eluta.ca — Moteur de recherche d'emploi indexant les sites carrières des meilleurs employeurs au Canada.
+• Glassdoor Canada : https://www.glassdoor.ca — Offres d’emploi + avis sur les entreprises et salaires, utile pour comparer les employeurs avant de postuler.
+• Eluta.ca : https://www.eluta.ca — Moteur de recherche d’emploi indexant les sites carrières des meilleurs employeurs au Canada.
 
 PLATEFORMES SPÉCIFIQUES AU QUÉBEC :
 • Guichet-Emplois Québec : https://www.quebec.ca/emploi — Portail emploi du gouvernement du Québec, offres dans la fonction publique et privée.
@@ -729,7 +747,7 @@ RESSOURCES POUR IMMIGRANTS :
 • Immigrant Québec : https://www.immigrantquebec.com — Guide complet pour les immigrants au Québec, offres d'emploi, conseils d'intégration, formation.
 • CANADIM : https://www.canadim.com — Ressources immigration et emploi, conseils juridiques, guides pour les nouveaux arrivants au Canada.
 
-CONSIGNE POUR LA RECHERCHE D'EMPLOI :
+CONSIGNE POUR LA RECHERCHE D’EMPLOI :
 - Si le candidat est francophone et veut travailler au Québec → Propose en priorité : Jobillico, Jobboom, Guichet-Emplois Québec, Immigrant Québec
 - Si le candidat cherche dans la fonction publique → Propose : Emplois GC (jobs.gc.ca) et Guichet-Emplois
 - Si le candidat est un professionnel qualifié → Propose : LinkedIn, Indeed, Glassdoor
