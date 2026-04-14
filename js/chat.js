@@ -525,7 +525,11 @@ async function exportSessionToWord(id) {
     const session = sessions.find(s => s.id === id);
     if (!session) return;
 
-    // Word XML / HTML Header
+    const exportDate = new Date().toLocaleDateString('fr-FR', { 
+        day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+    });
+
+    // Word XML / HTML Header with improved CSS
     const header = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' 
               xmlns:w='urn:schemas-microsoft-com:office:word' 
@@ -534,48 +538,69 @@ async function exportSessionToWord(id) {
             <meta charset='utf-8'>
             <title>${session.title}</title>
             <style>
-                body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
-                .header { text-align: center; border-bottom: 2px solid #E02424; padding-bottom: 20px; margin-bottom: 30px; }
-                .title { font-size: 24pt; font-weight: bold; color: #E02424; margin-bottom: 5pt; }
-                .subtitle { font-size: 10pt; color: #666; }
-                .message { margin-bottom: 25pt; page-break-inside: avoid; }
-                .role-user { font-weight: bold; color: #1A56DB; font-size: 12pt; margin-bottom: 5pt; }
-                .role-assistant { font-weight: bold; color: #10A37F; font-size: 12pt; margin-bottom: 5pt; }
-                .content { font-size: 11pt; }
-                table { border-collapse: collapse; width: 100%; margin: 15pt 0; }
-                th, td { border: 1pt solid #ddd; padding: 8pt; text-align: left; font-size: 10pt; }
-                th { background-color: #f8f9fa; font-weight: bold; }
-                .footer { margin-top: 50pt; font-size: 9pt; color: #999; text-align: center; border-top: 1pt solid #eee; padding-top: 10pt; }
+                body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1F2937; padding: 40pt; }
+                .header-section { text-align: center; border-bottom: 3pt solid #E02424; padding-bottom: 20pt; margin-bottom: 40pt; }
+                .brand-title { font-size: 32pt; font-weight: bold; color: #E02424; margin-bottom: 5pt; }
+                .brand-subtitle { font-size: 12pt; color: #6B7280; font-style: italic; }
+                .doc-info { font-size: 10pt; color: #9CA3AF; margin-top: 15pt; }
+                
+                .message-container { margin-bottom: 35pt; page-break-inside: avoid; }
+                .bubble-wrap { padding: 15pt; border-radius: 10pt; }
+                .user-style { border-left: 5pt solid #1A56DB; background-color: #ffffff; }
+                .assistant-style { background-color: #F9FAFB; border-left: 5pt solid #10A37F; }
+                
+                .role-label { font-size: 9pt; font-weight: bold; margin-bottom: 8pt; display: block; text-transform: uppercase; letter-spacing: 1.5pt; }
+                .label-user { color: #1A56DB; }
+                .label-assistant { color: #10A37F; }
+                
+                .text-content { font-size: 12pt; color: #374151; }
+                .text-content p { margin: 8pt 0; }
+                
+                table { border-collapse: collapse; width: 100%; margin: 20pt 0; border: 1pt solid #E5E7EB; }
+                th { background-color: #E02424; color: #ffffff; padding: 12pt; text-align: left; font-size: 11pt; border: 1pt solid #E02424; }
+                td { padding: 10pt; border: 1pt solid #E5E7EB; font-size: 10.5pt; vertical-align: top; }
+                tr:nth-child(even) { background-color: #F3F4F6; }
+                
+                .footer-section { margin-top: 60pt; font-size: 10pt; color: #9CA3AF; text-align: center; border-top: 1pt solid #E5E7EB; padding-top: 25pt; }
+                .notice { font-size: 9pt; color: #6B7280; margin-top: 10pt; }
             </style>
         </head>
         <body>
-            <div class='header'>
-                <div class='title'>ALLO CANADA</div>
-                <div class='subtitle'>Assistant Virtuel d'Immigration</div>
-                <div style='margin-top: 10pt;'>Discussion : ${session.title}</div>
+            <div class='header-section'>
+                <div class='brand-title'>ALLO CANADA</div>
+                <div class='brand-subtitle'>Votre Assistant Expert en Immigration</div>
+                <div class='doc-info'>
+                    Compte-rendu de consultation : <strong>${session.title}</strong><br>
+                    Généré le ${exportDate}
+                </div>
             </div>
     `;
 
     let body = "";
     session.history.forEach(m => {
-        const roleLabel = m.role === 'user' ? 'Vous' : 'Allo Canada';
-        const roleClass = m.role === 'user' ? 'role-user' : 'role-assistant';
+        const isUser = m.role === 'user';
+        const roleLabel = isUser ? 'VOTRE QUESTION' : 'RÉPONSE D\'ALLO CANADA';
+        const boxClass = isUser ? 'user-style' : 'assistant-style';
+        const labelClass = isUser ? 'label-user' : 'label-assistant';
         
-        // Use formatText but clean it up for Word (remove potential scripts/complex tags)
         let htmlContent = formatText(m.content);
         
         body += `
-            <div class='message'>
-                <div class='${roleClass}'>${roleLabel}</div>
-                <div class='content'>${htmlContent}</div>
+            <div class='message-container'>
+                <div class='bubble-wrap ${boxClass}'>
+                    <div class='role-label ${labelClass}'>${roleLabel}</div>
+                    <div class='text-content'>${htmlContent}</div>
+                </div>
             </div>
         `;
     });
 
     const footer = `
-            <div class='footer'>
-                Document généré par Allo Canada - ${new Date().toLocaleDateString('fr-FR')} ${new Date().toLocaleTimeString('fr-FR')}<br>
-                Vérifiez toujours les informations officielles sur Canada.ca
+            <div class='footer-section'>
+                Document officiel généré par la plateforme Allo Canada (www.allocanada.ca)<br>
+                <div class='notice'>
+                    <strong>Avertissement :</strong> Ce document est fourni à titre informatif. Seules les informations publiées sur Canada.ca ou communiquées officiellement par l'IRCC font foi en matière d'immigration.
+                </div>
             </div>
         </body>
         </html>
@@ -583,7 +608,7 @@ async function exportSessionToWord(id) {
 
     const fullHtml = header + body + footer;
     
-    // Create Blob and Download
+    // Create Blob and Trigger Download
     const blob = new Blob(['\ufeff', fullHtml], {
         type: 'application/msword'
     });
@@ -591,12 +616,12 @@ async function exportSessionToWord(id) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `discussion-canada-${session.title.toLowerCase().replace(/\s+/g, '-')}.doc`;
+    link.download = `Consultation-AlloCanada-${session.title.replace(/\s+/g, '-')}.doc`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    showToast("Exportation Word lancée");
+    showToast("Document Word généré avec succès");
 }
 
 /**
