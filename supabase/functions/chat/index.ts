@@ -25,7 +25,15 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { message, conversation_id, history, action } = await req.json()
+    const body = await req.json().catch(() => ({}));
+    const { message, conversation_id, history, action } = body;
+    
+    if (!action && !message) {
+      return new Response(JSON.stringify({ error: "Message ou action manquant" }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      });
+    }
 
     // ---------------------------------------------------------
     // ACTION: SEED (Initialisation de la base de connaissance)
@@ -792,26 +800,8 @@ ${suggestionsInstruction}`;
             .slice(0, 3)
     }
 
-    // 5. Persist
-    if (conversation_id) {
-        try {
-            await fetch(`${SUPABASE_URL}/rest/v1/messages`, {
-                method: 'POST',
-                headers: { 
-                    'apikey': SUPABASE_SERVICE_ROLE_KEY, 
-                    'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=minimal'
-                },
-                body: JSON.stringify([
-                    { conversation_id, role: 'user', content: message },
-                    { conversation_id, role: 'assistant', content: reply }
-                ])
-            })
-        } catch (e) {
-            console.error("Sync Error:", e);
-        }
-    }
+    // 5. Persistance (Supprimée car gérée par le client js/chat.js pour éviter les erreurs de format d'ID)
+    console.log(`Réponse générée pour la session: ${conversation_id || 'guest'}`);
 
     return new Response(JSON.stringify({ reply, suggestions }), {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
