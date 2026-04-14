@@ -78,28 +78,44 @@ async function updateAuthUI() {
         console.error("Erreur profile check:", e);
     }
 
-    footer.innerHTML = `
-        <div style="padding: 12px; background: var(--neutral-100); border-radius: var(--radius-md); margin-bottom: 12px;">
-            <div style="font-size: 11px; color: var(--neutral-500); margin-bottom: 4px;">Connecté en tant que</div>
-            <div style="font-size: 13px; font-weight: 600; color: var(--neutral-800); overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px;">
-                ${currentUser.user_metadata?.full_name || currentUser.email}
-            </div>
-            
-            ${isAdmin ? `
-                <a href="admin.html" style="display:flex; align-items:center; gap:8px; color:var(--primary); font-size:12px; text-decoration:none; font-weight:600; margin-bottom:8px; padding:6px; background:rgba(26, 86, 219, 0.1); border-radius:4px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line></svg>
-                    Dashboard Admin
-                </a>
-            ` : ''}
+    const userName = currentUser.user_metadata?.full_name || currentUser.email;
+    const initial = userName.charAt(0).toUpperCase();
 
-            <button onclick="handleLogout()" style="background:none; border:none; color:var(--neutral-500); font-size:12px; padding:0; cursor:pointer; font-weight:500">Se déconnecter</button>
+    footer.innerHTML = `
+        <div class="user-profile-btn" onclick="toggleUserMenu()">
+            <div class="user-avatar">${initial}</div>
+            <div class="user-info">
+                <div class="user-name">${userName}</div>
+                ${isAdmin ? '<div class="user-role" style="color:var(--primary); font-size:11px;">Admin</div>' : ''}
+            </div>
+            <div class="user-settings-icon" style="margin-left: auto; color: var(--neutral-500);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+            </div>
         </div>
-        <a href="index.html" style="color:var(--neutral-600); font-size:14px; display:flex; align-items:center; gap:10px">
-           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-           Retour à l'accueil
-        </a>
+        
+        <div class="user-dropdown-menu" id="user-dropdown">
+            ${isAdmin ? `
+            <a href="admin.html" class="dropdown-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                Dashboard
+            </a>
+            ` : ''}
+            <a href="index.html" class="dropdown-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                Accueil
+            </a>
+            <button onclick="handleLogout()" class="dropdown-item" style="width: 100%; border: none; background: transparent; cursor: pointer; text-align: left; font-family: inherit;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Déconnexion
+            </button>
+        </div>
     `;
 }
+
+window.toggleUserMenu = function() {
+    const d = document.getElementById('user-dropdown');
+    if(d) d.classList.toggle('active');
+};
 
 /**
  * Start a new chat session

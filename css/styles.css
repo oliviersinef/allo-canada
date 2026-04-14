@@ -494,14 +494,107 @@ footer {
 }
 
 .sidebar.collapsed {
-  width: 0;
-  min-width: 0;
-  overflow: hidden;
-  border-right: none;
+  width: 72px; /* ChatGPT style narrow bar */
+  min-width: 72px;
+  overflow: visible;
 }
 
-.sidebar-header {
-  padding: 12px;
+/* Hide text elements in collapsed state */
+.sidebar.collapsed span,
+.sidebar.collapsed p {
+  opacity: 0;
+  display: none;
+}
+
+/* Header Top */
+.sidebar-header-top {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+}
+
+.sidebar-logo-link {
+  display: flex;
+  align-items: center;
+  position: relative;
+  text-decoration: none;
+  width: 32px;
+  height: 32px;
+  justify-content: center;
+}
+
+.sidebar-logo-img {
+  height: 28px;
+  width: auto;
+  transition: opacity 0.2s;
+}
+
+.hover-open-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  visibility: hidden;
+  color: var(--neutral-600);
+  transition: all 0.2s;
+}
+
+/* Hover-to-toggle logic */
+.sidebar.collapsed .sidebar-logo-link:hover .sidebar-logo-img {
+  opacity: 0;
+}
+
+.sidebar.collapsed .sidebar-logo-link:hover .hover-open-icon {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Navigation inside sidebar */
+.sidebar-nav {
+  padding: 0 12px;
+  margin-bottom: 12px;
+}
+
+.nav-item-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: transparent;
+  color: var(--neutral-700);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.nav-item-btn:hover {
+  background: var(--neutral-100);
+}
+
+.sidebar.collapsed .nav-item-btn {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+/* Hide toggle open button if it was used anywhere else */
+.sidebar-toggle-desktop {
+  display: none !important;
+}
+
+/* Hide close button when collapsed */
+.sidebar.collapsed .btn-close-sidebar {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-header-top {
+  justify-content: center;
 }
 
 .btn-new-chat {
@@ -544,6 +637,20 @@ footer {
   white-space: nowrap;
   color: var(--neutral-600);
   transition: background 0.2s;
+  position: relative;
+}
+
+.sidebar.collapsed .session-item {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.sidebar.collapsed .session-item svg {
+  margin: 0;
+}
+
+.sidebar.collapsed .session-options-btn {
+  display: none !important;
 }
 
 .session-item:hover {
@@ -580,6 +687,79 @@ footer {
 .sidebar-footer {
   padding: 12px;
   border-top: 1px solid var(--neutral-200);
+  position: relative;
+}
+
+.user-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.user-profile-btn:hover {
+  background: var(--neutral-100);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutral-900);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.user-dropdown-menu {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 12px;
+  right: 12px;
+  background: white;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  display: none;
+  z-index: 1000;
+}
+
+.user-dropdown-menu.active {
+  display: block;
+}
+
+.sidebar.collapsed .user-profile-btn {
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.sidebar.collapsed .user-info,
+.sidebar.collapsed .user-settings-icon {
+  display: none;
 }
 
 /* Main Chat Area Overlay */
