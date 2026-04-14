@@ -1,3 +1,5 @@
+import { getSupabase, getCurrentUser, handleLogout } from './auth.js';
+
 // 0. DOM Elements
 const chatMessages = document.getElementById('chat-messages');
 const messagesInner = document.getElementById('messages-inner');
@@ -940,6 +942,11 @@ function renderSuggestions(suggestions) {
     messagesInner.appendChild(container);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+// Global exports for HTML event handlers
+window.handleChatSubmit = handleChatSubmit;
+window.removeAttachedFile = removeAttachedFile;
+window.startNewChat = startNewChat;
 
 // Initial Run
 init();

@@ -9,7 +9,7 @@ const SUPABASE_ANON_KEY_AUTH = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ
 /**
  * Initialize or retrieve the global Supabase client
  */
-function getSupabase() {
+export function getSupabase() {
     if (window.supabaseClient) return window.supabaseClient;
     
     if (typeof supabase === 'undefined') {
@@ -85,7 +85,7 @@ const AuthSecurity = {
 /**
  * Handle Login
  */
-async function handleLogin(rawEmail, rawPassword) {
+export async function handleLogin(rawEmail, rawPassword) {
     const email = AuthSecurity.sanitizeInput(rawEmail);
     const password = rawPassword; // Don't sanitize password, let Supabase handle it securely
     
@@ -128,7 +128,7 @@ async function handleLogin(rawEmail, rawPassword) {
 /**
  * Handle Sign Up
  */
-async function handleSignUp(rawEmail, rawPassword, rawFullName, rawCountry, rawPhone) {
+export async function handleSignUp(rawEmail, rawPassword, rawFullName, rawCountry, rawPhone) {
     const email = AuthSecurity.sanitizeInput(rawEmail);
     const fullName = AuthSecurity.sanitizeInput(rawFullName);
     const country = AuthSecurity.sanitizeInput(rawCountry);
@@ -154,7 +154,7 @@ async function handleSignUp(rawEmail, rawPassword, rawFullName, rawCountry, rawP
 /**
  * Handle Logout
  */
-async function handleLogout() {
+export async function handleLogout() {
     await supabaseClient.auth.signOut();
     localStorage.removeItem('allo_canada_sessions');
     localStorage.removeItem('allo_canada_guest_questions');
@@ -164,7 +164,7 @@ async function handleLogout() {
 /**
  * Get current user
  */
-async function getCurrentUser() {
+export async function getCurrentUser() {
     const { data: { user } } = await supabaseClient.auth.getUser();
     return user;
 }
@@ -172,14 +172,14 @@ async function getCurrentUser() {
 /**
  * Check if user is logged in
  */
-async function checkAuthStatus() {
+export async function checkAuthStatus() {
     const user = await getCurrentUser();
     return !!user;
 }
 
 // Global exports for Vite/Vercel build compatibility
 window.handleLogin = handleLogin;
-window.handleSignup = handleSignup;
+window.handleSignUp = handleSignUp;
 window.handleLogout = handleLogout;
 window.getCurrentUser = getCurrentUser;
 window.checkAuthStatus = checkAuthStatus;

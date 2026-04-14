@@ -182,8 +182,8 @@
 
     <!-- Script Supabase logic will be added via auth.js -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/auth.js"></script>
-    <script>
+    <script type="module">
+        import { handleLogin } from './js/auth.js';
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;

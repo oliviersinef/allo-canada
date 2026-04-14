@@ -1,4 +1,5 @@
 /* ALLO CANADA - Main Application Logic */
+import { checkAuthStatus } from './auth.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Mobile menu toggle logic
