@@ -1,0 +1,5 @@
+git add supabase/functions/chat/index.ts
+
+git commit -m "fix(chat): mise à jour des barèmes TCF/TEF officiels et durcissement de l'algorithme de conversion"
+
+git push origin main
