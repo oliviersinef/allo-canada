@@ -1120,3 +1120,19 @@ window.startNewChat = startNewChat;
 
 // Initial Run
 init();
+
+// --- Realtime Presence ---
+async function initPresence() {
+    const channel = dbClient.channel('online-users');
+    await channel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+            const { data: { user } } = await dbClient.auth.getUser();
+            await channel.track({
+                user_id: user?.id || 'guest',
+                online_at: new Date().toISOString(),
+                page: 'chat'
+            });
+        }
+    });
+}
+initPresence();

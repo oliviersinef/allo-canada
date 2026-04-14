@@ -1,5 +1,8 @@
 /* ALLO CANADA - Main Application Logic */
-import { checkAuthStatus } from './auth.js';
+import { checkAuthStatus, getSupabase } from './auth.js';
+
+const supabase = getSupabase();
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // Mobile menu toggle logic
@@ -52,5 +55,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-    updateNavbarAuth();
+    // --- Realtime Presence ---
+    async function initPresence() {
+        const channel = supabase.channel('online-users');
+        await channel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                const { data: { user } } = await supabase.auth.getUser();
+                await channel.track({
+                    user_id: user?.id || 'guest',
+                    online_at: new Date().toISOString(),
+                });
+            }
+        });
+    }
+    initPresence();
 });

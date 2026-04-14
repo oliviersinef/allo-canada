@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration — Allo Canada</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-body">
+    <div id="admin-auth-check" class="auth-overlay">
+        <div class="loader"></div>
+        <p>Vérification des accès administrateur...</p>
+    </div>
+
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <span>Allo Canada</span> Admin
+            </div>
+            <nav class="admin-nav">
+                <button class="nav-item active" data-tab="overview">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Aperçu
+                </button>
+                <button class="nav-item" data-tab="users">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Utilisateurs
+                </button>
+                <button class="nav-item" data-tab="knowledge">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    Base de savoir
+                </button>
+                <button class="nav-item" data-tab="settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    IA & Réglages
+                </button>
+            </nav>
+            <div class="sidebar-user">
+                <p id="admin-name">Chargement...</p>
+                <button onclick="handleLogout()" class="btn-logout">Déconnexion</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-left">
+                    <h1 id="current-tab-title">Tableau de bord</h1>
+                    <p id="current-tab-desc">Statistiques globales et activité en temps réel.</p>
+                </div>
+                <div class="header-right">
+                    <div class="live-status">
+                        <span class="pulse"></span>
+                        <span id="live-users-count">0</span> utilisateurs en ligne
+                    </div>
+                </div>
+            </header>
+
+            <!-- Tabs Content -->
+            <div id="tab-overview" class="tab-pane active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Utilisateurs totaux</div>
+                        <div class="stat-value" id="stat-total-users">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Conversations</div>
+                        <div class="stat-value" id="stat-total-convs">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Messages IA</div>
+                        <div class="stat-value" id="stat-total-msgs">-</div>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <div class="content-card">
+                        <h3>Distribution par Pays</h3>
+                        <div id="country-list" class="country-list">
+                            <!-- JS populated -->
+                        </div>
+                    </div>
+                    <div class="content-card">
+                        <h3>Activité Récente</h3>
+                        <div id="recent-activity" class="activity-list">
+                            <!-- JS populated -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-users" class="tab-pane">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3>Liste des utilisateurs</h3>
+                        <input type="text" id="user-search" placeholder="Rechercher un nom ou pays...">
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Pays</th>
+                                    <th>Email</th>
+                                    <th>Inscrit le</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-knowledge" class="tab-pane">
+                <div class="content-card">
+                    <h3>Synchronisation Canada.ca</h3>
+                    <p>Déclenchez la mise à jour forcée des documents depuis les sources gouvernementales.</p>
+                    <div class="admin-actions">
+                        <button id="btn-sync" class="btn-action primary">Synchroniser les sources</button>
+                        <button id="btn-seed" class="btn-action secondary">Réinitialiser la base (Seed)</button>
+                    </div>
+                    <div id="sync-status" class="status-box"></div>
+                </div>
+            </div>
+
+            <div id="tab-settings" class="tab-pane">
+                <div class="content-card">
+                    <h3>Message Système (Prompt)</h3>
+                    <p>Définissez l'identité et les consignes de l'IA.</p>
+                    <textarea id="system-prompt-area" rows="12" class="admin-textarea"></textarea>
+                    <div class="admin-actions">
+                        <button id="btn-save-prompt" class="btn-action primary">Enregistrer les consignes</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>
