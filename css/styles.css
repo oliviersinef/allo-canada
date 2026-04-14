@@ -126,7 +126,7 @@ button {
 }
 
 .logo span {
-  color: var(--primary);
+  color: var(--neutral-900);
 }
 
 .nav-links {
