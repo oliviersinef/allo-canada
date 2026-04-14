@@ -176,3 +176,10 @@ async function checkAuthStatus() {
     const user = await getCurrentUser();
     return !!user;
 }
+
+// Global exports for Vite/Vercel build compatibility
+window.handleLogin = handleLogin;
+window.handleSignup = handleSignup;
+window.handleLogout = handleLogout;
+window.getCurrentUser = getCurrentUser;
+window.checkAuthStatus = checkAuthStatus;
