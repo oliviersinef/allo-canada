@@ -713,32 +713,25 @@ async function fetchUserSessions() {
     if (!currentUser) return;
 
     try {
+        // Fetch everything in ONE single request using a join
         const { data: convs, error: convError } = await dbClient
             .from('conversations')
-            .select('*')
+            .select('*, messages(*)')
             .eq('user_id', currentUser.id)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .order('created_at', { foreignTable: 'messages', ascending: true });
 
         if (convError) throw convError;
         if (!convs) return;
 
-        const newSessions = [];
-
-        for (const conv of convs) {
-            const { data: msgs, error: msgsError } = await dbClient
-                .from('messages')
-                .select('*')
-                .eq('conversation_id', conv.id)
-                .order('created_at', { ascending: true });
-
-            if (msgsError) continue;
-
+        const newSessions = convs.map(conv => {
+            const msgs = conv.messages || [];
+            
+            // Local fallback logic for title
             const firstMsgContent = msgs[0]?.content || 'Discussion';
             const sanitizedTitle = firstMsgContent.replace(/[\n\r]/g, ' ').trim();
             const fallbackTitle = sanitizedTitle.substring(0, 30) + (sanitizedTitle.length > 30 ? '...' : '');
             
-            // For older records, session_id in DB contains the title. For newer ones it might be the timestamp.
-            // If it's a number (timestamp), use the fallback title. Else, it is the manual rename so use session_id.
             let displayTitle = conv.session_id;
             if (/^\d{13}$/.test(conv.session_id)) {
                 displayTitle = fallbackTitle; 
@@ -746,19 +739,18 @@ async function fetchUserSessions() {
                 displayTitle = conv.session_id.substring(0, 30) + '...';
             }
             
-            newSessions.push({
-                id: conv.session_id, // Local ID is just the title, but that breaks UI references somewhat.
-                // Wait, if id is a timestamp, it's fine. If id is "ALLO CANADA", it will render properly still!
-                dbId: conv.id, // Internal DB ID
+            return {
+                id: conv.session_id,
+                dbId: conv.id,
                 title: displayTitle,
                 history: msgs.map(m => ({ role: m.role, content: m.content }))
-            });
-        }
+            };
+        });
 
         sessions = newSessions;
         localStorage.setItem('allo_canada_sessions', JSON.stringify(sessions));
         renderSessions();
-        console.log(`Sync successful: ${sessions.length} sessions loaded.`);
+        console.log(`Sync successful: ${sessions.length} sessions loaded (Optimized).`);
     } catch (e) {
         console.error("Critical error fetching sessions:", e);
         showToast("Erreur de synchronisation historique");
