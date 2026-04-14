@@ -107,8 +107,8 @@ serve(async (req: Request) => {
           },
           {
             url: 'https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/entree-express/demande/qualifier/tests-langue/equivalence-nclc.html',
-            title: 'Barème Officiel de Cotation Linguistique (NCLC/CLB) - TCF, IELTS, CELPIP, PTE',
-            content: `TABLEAUX DE CORRESPONDANCE NCLC/CLB OFFICIELS :
+            title: 'Barème Officiel de Cotation Linguistique (NCLC/CLB) - TCF, TEF, IELTS, CELPIP, PTE',
+            content: `TABLEAUX DE CORRESPONDANCE NCLC/CLB OFFICIELS (MAJ 2024) :
             
             1. TCF CANADA :
             | NCLC | C.Écrit | E.Écrite | C.Oral | E.Orale |
@@ -121,7 +121,18 @@ serve(async (req: Request) => {
             | 5    | 375-405 | 6        | 369-397| 6       |
             | 4    | 342-374 | 4-5      | 331-368| 4-5     |
 
-            2. IELTS GENERAL TRAINING :
+            2. TEF CANADA (Après le 11 Décembre 2023) :
+            | NCLC | C.Écrit | E.Écrite | C.Oral | E.Orale |
+            |------|---------|----------|--------|---------|
+            | 10   | 546-699 | 558-699  | 546-699| 556-699 |
+            | 9    | 503-545 | 512-557  | 503-545| 518-555 |
+            | 8    | 462-502 | 472-511  | 462-502| 494-517 |
+            | 7    | 434-461 | 428-471  | 434-461| 456-493 |
+            | 6    | 393-433 | 379-427  | 393-433| 422-455 |
+            | 5    | 352-392 | 330-378  | 352-392| 387-421 |
+            | 4    | 306-351 | 268-329  | 306-351| 328-386 |
+
+            3. IELTS GENERAL TRAINING :
             - CLB 10 : L:8.5, R:8.0, W:7.5, S:7.5
             - CLB 9  : L:8.0, R:7.0, W:7.0, S:7.0
             - CLB 8  : L:7.5, R:6.5, W:6.5, S:6.5
@@ -129,10 +140,10 @@ serve(async (req: Request) => {
             - CLB 6  : L:5.5, R:5.0, W:5.5, S:5.5
             - CLB 5  : L:5.0, R:4.0, W:5.0, S:5.0
 
-            3. CELPIP GENERAL :
+            4. CELPIP GENERAL :
             - Niveau NCLC = Score exact (Score 9 = NCLC 9).
 
-            4. PTE CORE :
+            5. PTE CORE :
             - CLB 10 : L:89-90, R:88-90, W:90, S:89-90
             - CLB 9  : L:82-88, R:78-87, W:88-89, S:84-88
             - CLB 8  : L:71-81, R:69-77, W:79-87, S:76-83
@@ -140,7 +151,7 @@ serve(async (req: Request) => {
             - CLB 6  : L:50-59, R:51-59, W:60-68, S:59-67
             - CLB 5  : L:39-49, R:42-50, W:51-59, S:51-58
 
-            CONSIGNE STRICTE : Ne jamais inventer de plages de scores. Si le score de l'utilisateur ne correspond à aucune plage ci-dessus, demande une vérification. Priorité absolue aux tableaux ci-dessus sur tes connaissances internes.`
+            CONSIGNE STRICTE : Ne jamais inventer de plages de scores. Priorité absolue aux tableaux ci-dessus.`
           },
           // ====== NOUVEAUX DOCUMENTS DE CONNAISSANCE ======
           {
@@ -604,6 +615,15 @@ IMPORTANT - BARÈMES LINGUISTIQUES (PRIORITÉ ABSOLUE) :
 - NCLC 5 : C.Oral(369-397), C.Écrit(375-405), E.Oral(6), E.Écrit(6)
 - NCLC 4 : C.Oral(331-368), C.Écrit(342-374), E.Oral(4-5), E.Écrit(4-5)
 
+[TEF CANADA - Nouveaux scores après 10 déc 2023]
+- NCLC 10 : C.Oral(546-699), C.Écrit(546-699), E.Oral(556-699), E.Écrit(558-699)
+- NCLC 9 : C.Oral(503-545), C.Écrit(503-545), E.Oral(518-555), E.Écrit(512-557)
+- NCLC 8 : C.Oral(462-502), C.Écrit(462-502), E.Oral(494-517), E.Écrit(472-511)
+- NCLC 7 : C.Oral(434-461), C.Écrit(434-461), E.Oral(456-493), E.Écrit(428-471)
+- NCLC 6 : C.Oral(393-433), C.Écrit(393-433), E.Oral(422-455), E.Écrit(379-427)
+- NCLC 5 : C.Oral(352-392), C.Écrit(352-392), E.Oral(387-421), E.Écrit(330-378)
+- NCLC 4 : C.Oral(306-351), C.Écrit(306-351), E.Oral(328-386), E.Écrit(268-329)
+
 [IELTS GENERAL TRAINING]
 - CLB 10 : Écoute(8.5), Lecture(8.0), Écrit(7.5), Oral(7.5)
 - CLB 9 : Écoute(8.0), Lecture(7.0), Écrit(7.0), Oral(7.0)
@@ -617,13 +637,20 @@ IMPORTANT - BARÈMES LINGUISTIQUES (PRIORITÉ ABSOLUE) :
 - Le niveau CLB/NCLC équivaut exactement au score obtenu (ex: Score 7 = CLB 7, Score 8 = CLB 8).
 
 [PTE CORE]
-- CLB 10 : Écoute(89-90), Lecture(88-90), Écrit(90), Oral(89-90)
-- CLB 9  : Écoute(82-88), Lecture(78-87), Écrit(88-89), Oral(84-88)
-- CLB 8  : Écoute(71-81), Lecture(69-77), Écrit(79-87), Oral(76-83)
-- CLB 7  : Écoute(60-70), Lecture(60-68), Écrit(69-78), Oral(68-75)
-- CLB 6  : Écoute(50-59), Lecture(51-59), Écrit(60-68), Oral(59-67)
-- CLB 5  : Écoute(39-49), Lecture(42-50), Écrit(51-59), Oral(51-58)
-- CLB 4  : Écoute(28-38), Lecture(33-41), Écrit(41-50), Oral(42-50)
+- CLB 10 : Écoute(89–90), Lecture(88–90), Écrit(90), Oral(89–90)
+- CLB 9  : Écoute(82–88), Lecture(78–87), Écrit(88–89), Oral(84–88)
+- CLB 8  : Écoute(71–81), Lecture(69–77), Écrit(79–87), Oral(76–83)
+- CLB 7  : Écoute(60–70), Lecture(60–68), Écrit(69–78), Oral(68–75)
+- CLB 6  : Écoute(50–59), Lecture(51–59), Écrit(60–68), Oral(59–67)
+- CLB 5  : Écoute(39–49), Lecture(42–50), Écrit(51–59), Oral(51–58)
+- CLB 4  : Écoute(28–38), Lecture(33–41), Écrit(41–50), Oral(42–50)
+
+ALGORITHME DE CONVERSION INTERNE (OBLIGATOIRE) :
+1. Demande à l'utilisateur quel test il a passé (TCF ou TEF).
+2. Vérifie la compétence (Oral, Écrit, Expression, Compréhension).
+3. Identifie la plage EXACTE dans le tableau correspondant ci-dessus.
+4. Si un score est à la limite (ex: 433 Oral TEF), il appartient au niveau INFÉRIEUR (NCLC 6). Il faut atteindre le seuil suivant (434) pour passer au niveau supérieur (NCLC 7).
+5. Ne jamais inventer ou estimer un score. Si tu as un doute, cite le tableau et explique que le score est à la limite.
 
 IMPORTANT - PROGRAMME IMMIGRATION CANADA ATLANTIQUE (NCLC MINIMUM) :
 - Offre d'emploi FEER 0, 1, 2 ou 3 → NCLC 5 minimum dans les 4 volets
