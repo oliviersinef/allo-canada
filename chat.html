@@ -851,7 +851,13 @@
         // --- Immigration Alerts Logic ---
         async function fetchLatestDraw() {
             try {
-                const { data, error } = await supabase
+                // Use the global client initialized in auth.js/chat.js
+                const client = window.supabaseClient;
+                if (!client) {
+                    console.warn("Supabase client not yet initialized for fetchLatestDraw");
+                    return;
+                }
+                const { data, error } = await client
                     .from('immigration_draws')
                     .select('*')
                     .order('draw_date', { ascending: false })
