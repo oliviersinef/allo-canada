@@ -1029,3 +1029,106 @@ footer {
   width: 14px;
   height: 14px;
 }
+
+/* Live Immigration Alerts */
+.live-alert-banner {
+  margin: 16px 20px 24px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #fff 0%, var(--neutral-50) 100%);
+  border: 1px solid var(--neutral-200);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: rgba(209, 31, 47, 0.1);
+  color: var(--primary);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.live-indicator .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  border-radius: 50%;
+  box-shadow: 0 0 0 rgba(209, 31, 47, 0.4);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(209, 31, 47, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(209, 31, 47, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(209, 31, 47, 0); }
+}
+
+.alert-content {
+  flex: 1;
+  font-size: 14px;
+  color: var(--neutral-700);
+  line-height: 1.5;
+}
+
+.alert-content strong {
+  color: var(--neutral-900);
+}
+
+.badge-score {
+  background: var(--neutral-900);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.alert-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+}
+
+.alert-link:hover {
+  background: var(--primary-light);
+  transform: translateX(2px);
+}
+
+@media (max-width: 768px) {
+  .live-alert-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 10px 12px 20px;
+    padding: 12px 16px;
+  }
+  
+  .alert-link {
+    padding: 0;
+    align-self: flex-end;
+  }
+}
+

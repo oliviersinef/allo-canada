@@ -583,7 +583,7 @@ serve(async (req: Request) => {
     let contextLines = "";
 
     try {
-        const [settingsRes, ragRes] = await Promise.all([
+        const [settingsRes, ragRes, latestDrawRes] = await Promise.all([
           fetch(`${SUPABASE_URL}/rest/v1/settings?key=eq.system_prompt&select=value`, {
             headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` }
           }),
@@ -599,17 +599,34 @@ serve(async (req: Request) => {
                 match_threshold: 0.5,
                 match_count: 5
             })
+          }),
+          fetch(`${SUPABASE_URL}/rest/v1/immigration_draws?select=*&order=draw_date.desc&limit=1`, {
+            headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` }
           })
         ]);
 
         const settingsData = await settingsRes.json();
         const matchData = await ragRes.json();
+        const latestDrawData = await latestDrawRes.json();
 
         if (Array.isArray(settingsData) && settingsData.length > 0) {
             systemPrompt = settingsData[0].value;
         }
         if (Array.isArray(matchData)) {
             contextLines = matchData.map((doc: any) => `Source [${doc.url}]:\n${doc.content}`).join('\n\n');
+        }
+
+        // Add Latest Draw to Context
+        if (Array.isArray(latestDrawData) && latestDrawData.length > 0) {
+            const draw = latestDrawData[0];
+            const drawInfo = `ALERTE - DERNIER TIRAGE DÉTECTÉ :
+            Programme : ${draw.program}
+            Date : ${draw.draw_date}
+            Score minimum : ${draw.minimum_score}
+            Invitations envoyées : ${draw.invitations_count}
+            Type de tirage : ${draw.draw_type}`;
+
+            systemPrompt += `\n\nACTUALITÉ RÉCENTE (À mentionner au début si c'est le début de la discussion) :\n${drawInfo}`;
         }
     } catch (err) {
         console.error("Data Fetch Error:", err);
@@ -631,6 +648,7 @@ INSTRUCTIONS DE RÉPONSE :
    NE JAMAIS utiliser le lien "documents-justificatifs-equivalences-langues" ni aucun autre lien inventé. Le seul lien autorisé pour l'évaluation linguistique est celui ci-dessus. C'est NON NÉGOCIABLE.
 5. CONCISION ET FOCUS : Réponds directement à la question posée sans déborder sur d'autres sujets. Si la question est simple, la réponse doit être brève. N'élabore pas de plan complet (ex: 1. Trouver un emploi, 2. Immigration, 3. Prochaines étapes) sauf si cela est spécifiquement demandé.
 6. CNP 2021 (RÈGLE CRITIQUE) : Depuis novembre 2022, tous les codes CNP doivent comporter 5 CHIFFRES. N'utilise JAMAIS les anciens codes à 4 chiffres (CNP 2016). Si un utilisateur cite un code à 4 chiffres (ex: 5241), corrige-le gentiment en lui donnant le code CNP 2021 correspondant (ex: 52120).
+7. PROACTIVITÉ ALERTE : Si 'history' est vide ou contient moins de 2 messages, tu DOIS obligatoirement commencer ta réponse par mentionner l'actualité récente des tirages (donnée dans le bloc ACTUALITÉ RÉCENTE ci-dessus) de manière polie et informative. Ne l'ignore JAMAIS au début d'une conversation.
 
 IMPORTANT - BARÈMES LINGUISTIQUES (PRIORITÉ ABSOLUE) :
 [TCF CANADA]
