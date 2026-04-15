@@ -1,4 +1,4 @@
-﻿import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -220,7 +220,7 @@ serve(async (req: Request) => {
             },
             body: JSON.stringify({
                 query_embedding: embedding,
-                match_threshold: 0.5,
+                match_threshold: 0.3,
                 match_count: 5
             })
           })
@@ -230,13 +230,23 @@ serve(async (req: Request) => {
         const mData = await ragRes.json();
 
         if (Array.isArray(sData) && sData.length > 0) systemPrompt = sData[0].value;
-        if (Array.isArray(mData)) contextLines = mData.map((doc: any) => `Source [${doc.url}]:\n${doc.content}`).join('\n\n');
+        
+        if (Array.isArray(mData) && mData.length > 0) {
+            contextLines = mData.map((doc: any) => `Source [${doc.url}]:\n${doc.content}`).join('\n\n');
+        } else {
+            contextLines = "Note: Aucun document spécifique trouvé. Utilisez la source générale: https://www.canada.ca/fr/immigration-refugies-citoyennete.html";
+        }
     } catch (err) {
         console.error("Fetch error:", err);
     }
 
-    const finalPrompt = systemPrompt + "\n\nContext:\n" + contextLines + "\n\nInstructions: Soyez concis, utilisez les codes CNP à 5 chiffres (2021). " +
-      "Signalez obligatoirement les suggestions à la fin format: ===SUGGESTIONS===\n1. Tip 1\n2. Tip 2\n3. Tip 3";
+    const finalPrompt = systemPrompt + "\n\nContext:\n" + contextLines + 
+      "\n\nInstructions impératives:\n" +
+      "1. Utilisez EXCLUSIVEMENT les liens (URLs) fournis dans la section Context ci-dessus.\n" +
+      "2. Ne JAMAIS inventer, deviner ou halluciner des liens qui ne sont pas explicitement dans le Context.\n" +
+      "3. Si vous citez une information provenant d'une source, incluez son URL exacte entre crochets [URL] à la fin de la phrase.\n" +
+      "4. Soyez concis, utilisez les codes CNP à 5 chiffres (2021).\n" +
+      "5. Signalez obligatoirement les suggestions à la fin format: ===SUGGESTIONS===\n1. Tip 1\n2. Tip 2\n3. Tip 3";
 
     const aiRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
