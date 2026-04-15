@@ -1082,12 +1082,27 @@ async function getAIResponse(message, history) {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erreur réseau');
+            let errorMsg = 'Erreur réseau';
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.error || errorMsg;
+            } catch (e) {
+                // Not JSON, use default or status text
+                errorMsg = response.statusText || errorMsg;
+            }
+            throw new Error(errorMsg);
         }
 
         const data = await response.json();
-        return { reply: data.reply, suggestions: data.suggestions || [] };
+        
+        if (!data || typeof data.reply === 'undefined') {
+            throw new Error("La réponse de l'IA est vide ou malformée.");
+        }
+
+        return { 
+            reply: data.reply, 
+            suggestions: data.suggestions || [] 
+        };
 
     } catch (error) {
         console.error("Erreur de récupération de l'IA:", error);

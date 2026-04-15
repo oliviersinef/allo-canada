@@ -808,20 +808,35 @@ ${suggestionsInstruction}`;
       })
     })
 
-    const aiData = await aiResponse.json()
-    if (aiData.error) throw new Error(`DeepSeek API Error: ${aiData.error.message}`)
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error(`DeepSeek API error status ${aiResponse.status}: ${errorText}`);
+      throw new Error(`Erreur de l'API DeepSeek (Status ${aiResponse.status})`);
+    }
+
+    const aiData = await aiResponse.json();
     
-    const rawReply = aiData.choices[0].message.content
-    let reply = rawReply
-    let suggestions: string[] = []
+    if (aiData.error) {
+      const msg = typeof aiData.error === 'string' ? aiData.error : (aiData.error.message || "Erreur inconnue");
+      throw new Error(`DeepSeek API Error: ${msg}`);
+    }
+    
+    if (!aiData.choices || !Array.isArray(aiData.choices) || aiData.choices.length === 0) {
+      console.error("DeepSeek response missing choices:", aiData);
+      throw new Error("L'IA n'a pas renvoyé de réponse valide.");
+    }
+    
+    const rawReply = aiData.choices[0].message.content;
+    let reply = rawReply;
+    let suggestions: string[] = [];
     
     if (rawReply.includes('===SUGGESTIONS===')) {
-        const parts = rawReply.split('===SUGGESTIONS===')
-        reply = parts[0].trim()
-        suggestions = parts[1].trim().split('\n')
-            .map((s: string) => s.replace(/^\d+\.\s*/, '').trim())
-            .filter((s: string) => s.length > 0)
-            .slice(0, 3)
+      const parts = rawReply.split('===SUGGESTIONS===');
+      reply = parts[0].trim();
+      suggestions = parts[1].trim().split('\n')
+        .map((s: string) => s.replace(/^\d+\.\s*/, '').trim())
+        .filter((s: string) => s.length > 0)
+        .slice(0, 3);
     }
 
     // 5. Persistance (Supprimée car gérée par le client js/chat.js pour éviter les erreurs de format d'ID)
@@ -829,7 +844,7 @@ ${suggestionsInstruction}`;
 
     return new Response(JSON.stringify({ reply, suggestions }), {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-    })
+    });
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error)
