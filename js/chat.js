@@ -149,9 +149,15 @@ function startNewChat(initialQuery = null) {
         handleChatSubmit(new Event('submit'));
     }
 
-    renderSessions();
-    const toggle = document.getElementById('sidebar');
-    if (toggle) toggle.classList.remove('open'); // Close on mobile
+    // Ensure sidebar closes on mobile correctly (including backdrop)
+    if (typeof window.closeSidebarMobile === 'function') {
+        window.closeSidebarMobile();
+    } else {
+        const toggle = document.getElementById('sidebar');
+        if (toggle) toggle.classList.remove('open');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (backdrop) backdrop.classList.remove('active');
+    }
 }
 
 /**
@@ -374,8 +380,16 @@ function loadSession(id) {
     });
 
     renderSessions();
-    const toggle = document.getElementById('sidebar');
-    if (toggle) toggle.classList.remove('open');
+    
+    // Ensure sidebar closes on mobile correctly (including backdrop)
+    if (typeof window.closeSidebarMobile === 'function') {
+        window.closeSidebarMobile();
+    } else {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.remove('open');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (backdrop) backdrop.classList.remove('active');
+    }
 }
 
 /**
