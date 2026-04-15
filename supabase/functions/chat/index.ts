@@ -616,17 +616,23 @@ serve(async (req: Request) => {
             contextLines = matchData.map((doc: any) => `Source [${doc.url}]:\n${doc.content}`).join('\n\n');
         }
 
-        // Add Latest Draw to Context
+        // Add Latest Draw to Context (Only if within 5 days)
         if (Array.isArray(latestDrawData) && latestDrawData.length > 0) {
             const draw = latestDrawData[0];
-            const drawInfo = `ALERTE - DERNIER TIRAGE DÉTECTÉ :
-            Programme : ${draw.program}
-            Date : ${draw.draw_date}
-            Score minimum : ${draw.minimum_score}
-            Invitations envoyées : ${draw.invitations_count}
-            Type de tirage : ${draw.draw_type}`;
+            const drawDate = new Date(draw.draw_date);
+            const now = new Date();
+            const diffDays = Math.ceil(Math.abs(now.getTime() - drawDate.getTime()) / (1000 * 60 * 60 * 24));
 
-            systemPrompt += `\n\nACTUALITÉ RÉCENTE (À mentionner au début si c'est le début de la discussion) :\n${drawInfo}`;
+            if (diffDays <= 5) {
+                const drawInfo = `ALERTE - DERNIER TIRAGE DÉTECTÉ (RÉCENT) :
+                Programme : ${draw.program}
+                Date : ${draw.draw_date}
+                Score minimum : ${draw.minimum_score}
+                Invitations envoyées : ${draw.invitations_count}
+                Type de tirage : ${draw.draw_type}`;
+
+                systemPrompt += `\n\nACTUALITÉ RÉCENTE (À mentionner obligatoirement au début car le tirage a moins de 5 jours) :\n${drawInfo}`;
+            }
         }
     } catch (err) {
         console.error("Data Fetch Error:", err);

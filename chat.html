@@ -861,8 +861,8 @@
             const now = new Date();
             const diffDays = Math.ceil(Math.abs(now - drawDate) / (1000 * 60 * 60 * 24));
             
-            // Only show if it's within the last 30 days (as requested for being aware of current news)
-            if (diffDays <= 30) {
+            // Only show if it's within the last 5 days (as requested)
+            if (diffDays <= 5) {
                 container.innerHTML = `
                     <div class="live-alert-banner">
                         <div class="live-indicator">
