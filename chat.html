@@ -262,62 +262,7 @@
             padding-top: 60px;
         }
 
-        @media (max-width: 768px) {
-            .mobile-header {
-                display: flex;
-                align-items: center;
-                padding: 12px 16px;
-                position: sticky;
-                top: 0;
-                background: white;
-                z-index: 100;
-                border-bottom: 1px solid var(--neutral-200);
-            }
 
-            #sidebar-toggle-open {
-                display: flex;
-            }
-
-            .mobile-sidebar-toggle {
-                display: flex !important;
-                align-items: center;
-                justify-content: center;
-                background: transparent;
-                border: none;
-                color: var(--neutral-700);
-                cursor: pointer;
-                padding: 8px;
-                border-radius: var(--radius-md);
-                transition: all 0.2s;
-            }
-
-            .mobile-sidebar-toggle:hover {
-                background: var(--neutral-100);
-            }
-
-            .sidebar-backdrop {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.4);
-                backdrop-filter: blur(2px);
-                z-index: 1000;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-
-            .sidebar-backdrop.active {
-                display: block;
-                opacity: 1;
-            }
-
-            .chat-messages {
-                padding-top: 0 !important;
-            }
-        }
 
         /* Custom Modal Styles */
         .modal-overlay {
