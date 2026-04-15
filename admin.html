@@ -12,6 +12,11 @@
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/admin.css">
+    <!-- Map & Chart Libraries -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/jsvectormap"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -88,17 +93,31 @@
                     </div>
                 </div>
 
-                <div class="content-grid">
-                    <div class="content-card">
-                        <h3>Distribution par Pays</h3>
-                        <div id="country-list" class="country-list">
-                            <!-- JS populated -->
+                <div class="content-grid single-column">
+                    <div class="content-card map-card">
+                        <div class="card-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="margin:0;">Distribution Interactive par Pays</h3>
+                            <button id="btn-toggle-country-list" class="btn-action secondary" style="font-size: 13px; padding: 6px 12px;">Voir la liste détaillée</button>
+                        </div>
+                        <div class="map-container-wrapper" style="position: relative; border-radius: 12px; overflow: hidden; background: #F9FAFB; border: 1px solid var(--neutral-200);">
+                            <div id="world-map" style="width: 100%; height: 400px; background-color: #F9FAFB;"></div>
+                            
+                            <div id="country-list-overlay" class="country-list-overlay hidden" style="position: absolute; top:0; right:0; bottom:0; width: 300px; background: white; border-left: 1px solid var(--neutral-200); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s ease;">
+                                <div class="overlay-header" style="padding: 15px; border-bottom: 1px solid var(--neutral-200); display: flex; justify-content: space-between; align-items: center; background: #F3F4F6;">
+                                    <h4 style="margin:0; font-size:14px; color: var(--neutral-800);">Volume par pays</h4>
+                                    <button id="btn-close-overlay" style="background:none; border:none; color:var(--neutral-500); cursor:pointer; font-size: 16px;">✕</button>
+                                </div>
+                                <div id="country-list" class="country-list" style="flex: 1; overflow-y: auto; padding: 15px;">
+                                    <!-- JS populated -->
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="content-card">
-                        <h3>Activité Récente</h3>
-                        <div id="recent-activity" class="activity-list">
-                            <!-- JS populated -->
+                    
+                    <div class="content-card chart-card">
+                        <h3>Évolution des Inscriptions (7 derniers jours)</h3>
+                        <div class="chart-container" style="position: relative; height:300px; width:100%; margin-top:20px;">
+                            <canvas id="registrationsChart"></canvas>
                         </div>
                     </div>
                 </div>

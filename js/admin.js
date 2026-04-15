@@ -130,7 +130,7 @@ async function loadTab(tab) {
     if (tab === 'overview') {
         await fetchStats();
         await fetchCountryDistribution();
-        await fetchRecentActivity();
+        initRegistrationChart(); // Trigger Chart.js async
     } else if (tab === 'users') {
         await fetchUsers();
     } else if (tab === 'knowledge') {
@@ -167,58 +167,148 @@ async function fetchStats() {
     document.getElementById('stat-total-msgs').textContent = msgCount || 0;
 }
 
+const countryToIso = {
+    "france": "FR", "cameroun": "CM", "côte d'ivoire": "CI", "cote d'ivoire": "CI", 
+    "sénégal": "SN", "senegal": "SN", "maroc": "MA", "algérie": "DZ", "algerie": "DZ", 
+    "tunisie": "TN", "canada": "CA", "états-unis": "US", "etats-unis": "US", 
+    "rdc": "CD", "république démocratique du congo": "CD", "congo": "CG", 
+    "mali": "ML", "burkina faso": "BF", "togo": "TG", "bénin": "BJ", "benin": "BJ", 
+    "gabon": "GA", "guinée": "GN", "guinee": "GN", "madagascar": "MG", 
+    "suisse": "CH", "belgique": "BE", "haïti": "HT", "haiti": "HT"
+};
+
 async function fetchCountryDistribution() {
-    const { data } = await supabase.rpc('get_country_stats'); // We might need to create this RPC
-    
-    // Fallback if RPC doesn't exist yet
-    let stats = data;
-    if (!data) {
-        const { data: raw } = await supabase.from('profiles').select('country');
-        const counts = {};
-        raw?.forEach(r => {
-            const c = r.country || 'Inconnu';
-            counts[c] = (counts[c] || 0) + 1;
-        });
-        stats = Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count);
+    const { data: raw } = await supabase.from('profiles').select('country');
+    const counts = {};
+    raw?.forEach(r => {
+        const c = r.country || 'Inconnu';
+        counts[c] = (counts[c] || 0) + 1;
+    });
+    const stats = Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count);
+
+    // 1. Populate Hidden Overlay List
+    const container = document.getElementById('country-list');
+    if (container) {
+        container.innerHTML = stats.map(s => `
+            <div class="country-item" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--neutral-100);">
+                <span class="country-name" style="font-weight: 500;">${s.name}</span>
+                <span class="country-count" style="color: var(--neutral-500); font-size: 13px;">${s.count} users</span>
+            </div>
+        `).join('');
     }
 
-    const container = document.getElementById('country-list');
-    container.innerHTML = stats.map(s => `
-        <div class="country-item">
-            <span class="country-name">${s.name}</span>
-            <span class="country-count">${s.count}</span>
-        </div>
-    `).join('');
+    // 2. Build map data
+    let mapData = {};
+    stats.forEach(s => {
+       const iso = countryToIso[s.name.toLowerCase()] || s.name.toUpperCase();
+       mapData[iso] = s.count;
+    });
+
+    // 3. Render jsVectorMap
+    if (window.worldMap) window.worldMap.destroy();
+    window.worldMap = new jsVectorMap({
+        selector: '#world-map',
+        map: 'world',
+        zoomOnScroll: false,
+        visualizeData: {
+            scale: ['#FCA5A5', '#991b1b'],
+            values: mapData
+        },
+        onRegionTooltipShow(event, tooltip, code) {
+            if (mapData[code]) {
+                tooltip.text(tooltip.text() + ` : ${mapData[code]}`);
+            } else {
+                 tooltip.text(tooltip.text() + ` : 0`);
+            }
+        }
+    });
+    
+    // Bind Overlay Toggle if not already bound
+    const btnToggle = document.getElementById('btn-toggle-country-list');
+    const btnClose = document.getElementById('btn-close-overlay');
+    const overlay = document.getElementById('country-list-overlay');
+    
+    if (btnToggle && !btnToggle.dataset.bound) {
+        btnToggle.onclick = () => overlay.style.transform = 'translateX(0)';
+        btnClose.onclick = () => overlay.style.transform = 'translateX(100%)';
+        btnToggle.dataset.bound = 'true';
+    }
 }
 
-async function fetchRecentActivity() {
-    const { data } = await supabase
-        .from('messages')
-        .select(`
-            content, 
-            created_at, 
-            conversations (
-                profiles (full_name)
-            )
-        `)
-        .eq('role', 'user')
-        .order('created_at', { ascending: false })
-        .limit(10);
+async function initRegistrationChart() {
+    const { data } = await supabase.from('profiles').select('created_at');
+    if (!data) return;
 
-    container.innerHTML = data?.map(m => `
-        <div class="activity-card">
-            <div class="activity-header">
-                <span class="activity-user-badge">${m.conversations?.profiles?.full_name || 'Utilisateur'}</span>
-                <span class="activity-time-badge">${new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-            </div>
-            <div class="activity-content">
-                <p>${m.content}</p>
-            </div>
-            <div class="activity-footer">
-                <a href="chat.html?session=${m.conversations?.id}" target="_blank" class="activity-link">Voir la conversation</a>
-            </div>
-        </div>
-    `).join('') || '<p class="empty-state">Aucune activité récente</p>';
+    const countsByDate = {};
+    const labels = [];
+    
+    for(let i=6; i>=0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        countsByDate[dateStr] = 0;
+        labels.push(d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }));
+    }
+
+    data.forEach(u => {
+        if (!u.created_at) return;
+        const dStr = u.created_at.split('T')[0];
+        if (countsByDate[dStr] !== undefined) {
+            countsByDate[dStr]++;
+        }
+    });
+
+    const values = Object.values(countsByDate);
+
+    if (window.regChart) window.regChart.destroy();
+    
+    const canvas = document.getElementById('registrationsChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(224, 36, 36, 0.2)');
+    gradient.addColorStop(1, 'rgba(224, 36, 36, 0)');
+
+    window.regChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Nouveaux Inscrits',
+                data: values,
+                borderColor: '#E02424',
+                backgroundColor: gradient,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#E02424',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#111827',
+                    padding: 10,
+                    titleFont: { family: 'Inter', size: 13 },
+                    bodyFont: { family: 'Inter', size: 14, weight: 'bold' },
+                    displayColors: false
+                }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0, color: '#6B7280' }, border: { dash: [4, 4] }, grid: { color: '#f3f4f6', drawBorder: false } },
+                x: { ticks: { color: '#6B7280' }, grid: { display: false, drawBorder: false } }
+            }
+        }
+    });
 }
 
 /**
