@@ -897,8 +897,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchLatestDraw();
-            loadConversations();
-            // ... (rest of the initializations)
+            // loadConversations() is now handled by init() in js/chat.js
         });
 
         textarea.addEventListener('input', () => {
