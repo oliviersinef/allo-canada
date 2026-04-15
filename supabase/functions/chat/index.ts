@@ -252,7 +252,7 @@ serve(async (req: Request) => {
         if (Array.isArray(mData) && mData.length > 0) {
             contextLines = mData.map((doc: any) => `Source [${doc.url}]:\n${doc.content}`).join('\n\n');
         } else {
-            contextLines = "Note: Aucun document spécifique trouvé. Utilisez EXCLUSIVEMENT la source générale: https://www.canada.ca/fr/immigration-refugies-citoyennete.html";
+            contextLines = "Note: Aucun document spécifique trouvé dans la base de connaissances pour cette requête précise.";
         }
     } catch (err) {
         console.error("Fetch error:", err);
@@ -262,7 +262,7 @@ serve(async (req: Request) => {
       "\n\nInstructions Critiques de Sécurité:\n" +
       "1. Ne JAMAIS inventer, deviner ou halluciner une URL. Toute URL non présente dans le Context est strictement interdite.\n" +
       "2. Utilisez EXCLUSIVEMENT les liens (URLs) fournis dans la section Context ci-dessus.\n" +
-      "3. Si aucun lien spécifique ne correspond parfaitement dans le Context, utilisez UNIQUEMENT le lien général: https://www.canada.ca/fr/immigration-refugies-citoyennete.html\n" +
+      "3. S'il n'y a pas de lien spécifique correspondant dans le Context, ne donnez AUCUN lien. Dites simplement que l'information n'est pas assortie d'un lien officiel dans vos documents actuels.\n" +
       "4. Incluez systématiquement l'URL source entre crochets [URL] immédiatement après l'information qu'elle justifie.\n" +
       "5. Soyez direct et concis. Utilisez les codes CNP 2021 à 5 chiffres.\n" +
       "6. Signalez obligatoirement les suggestions à la fin format: ===SUGGESTIONS===\n1. Tip 1\n2. Tip 2\n3. Tip 3";
