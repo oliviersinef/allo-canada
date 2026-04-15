@@ -166,32 +166,50 @@ serve(async (req: Request) => {
 
         for (const doc of documents) {
             try {
-                const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/canada_documents?url=eq.${encodeURIComponent(doc.url)}`, {
+                const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/canada_documents?url=eq.${encodeURIComponent(doc.url)}&select=embedding`, {
                     headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` }
                 });
-                const existingDocs = await checkRes.json();
-                if (existingDocs && existingDocs.length > 0) continue;
+                const existing = await checkRes.json();
+                
+                // Si le document existe déjà ET possède un embedding, on passe au suivant
+                if (Array.isArray(existing) && existing.length > 0 && existing[0].embedding) {
+                    continue;
+                }
 
                 const embedding = await generateEmbedding(doc.content);
-                await fetch(`${SUPABASE_URL}/rest/v1/canada_documents`, {
-                    method: 'POST',
-                    headers: { 
-                        'apikey': SUPABASE_SERVICE_ROLE_KEY, 
-                        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        url: doc.url,
-                        title: doc.title,
-                        content: doc.content,
-                        embedding: embedding
-                    })
-                });
+                
+                // Si le document existe mais n'a pas d'embedding, on le met à jour. Sinon on l'insère.
+                if (Array.isArray(existing) && existing.length > 0) {
+                    await fetch(`${SUPABASE_URL}/rest/v1/canada_documents?url=eq.${encodeURIComponent(doc.url)}`, {
+                        method: 'PATCH',
+                        headers: { 
+                            'apikey': SUPABASE_SERVICE_ROLE_KEY, 
+                            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ embedding: embedding })
+                    });
+                } else {
+                    await fetch(`${SUPABASE_URL}/rest/v1/canada_documents`, {
+                        method: 'POST',
+                        headers: { 
+                            'apikey': SUPABASE_SERVICE_ROLE_KEY, 
+                            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            url: doc.url,
+                            title: doc.title,
+                            content: doc.content,
+                            embedding: embedding
+                        })
+                    });
+                }
             } catch (err) {
                 console.error(`Error seeding ${doc.url}:`, err);
             }
         }
-        return new Response(JSON.stringify({ status: "seeded" }), {
+        return new Response(JSON.stringify({ status: "seeded", count: documents.length }), {
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
     }
@@ -203,7 +221,7 @@ serve(async (req: Request) => {
     }
 
     const embedding = await generateEmbedding(message);
-    let systemPrompt = "Réponds au nom d'Allo Canada.";
+    let systemPrompt = "Tu es l'Expert IA Allo Canada.";
     let contextLines = "";
 
     try {
@@ -234,19 +252,20 @@ serve(async (req: Request) => {
         if (Array.isArray(mData) && mData.length > 0) {
             contextLines = mData.map((doc: any) => `Source [${doc.url}]:\n${doc.content}`).join('\n\n');
         } else {
-            contextLines = "Note: Aucun document spécifique trouvé. Utilisez la source générale: https://www.canada.ca/fr/immigration-refugies-citoyennete.html";
+            contextLines = "Note: Aucun document spécifique trouvé. Utilisez EXCLUSIVEMENT la source générale: https://www.canada.ca/fr/immigration-refugies-citoyennete.html";
         }
     } catch (err) {
         console.error("Fetch error:", err);
     }
 
     const finalPrompt = systemPrompt + "\n\nContext:\n" + contextLines + 
-      "\n\nInstructions impératives:\n" +
-      "1. Utilisez EXCLUSIVEMENT les liens (URLs) fournis dans la section Context ci-dessus.\n" +
-      "2. Ne JAMAIS inventer, deviner ou halluciner des liens qui ne sont pas explicitement dans le Context.\n" +
-      "3. Si vous citez une information provenant d'une source, incluez son URL exacte entre crochets [URL] à la fin de la phrase.\n" +
-      "4. Soyez concis, utilisez les codes CNP à 5 chiffres (2021).\n" +
-      "5. Signalez obligatoirement les suggestions à la fin format: ===SUGGESTIONS===\n1. Tip 1\n2. Tip 2\n3. Tip 3";
+      "\n\nInstructions Critiques de Sécurité:\n" +
+      "1. Ne JAMAIS inventer, deviner ou halluciner une URL. Toute URL non présente dans le Context est strictement interdite.\n" +
+      "2. Utilisez EXCLUSIVEMENT les liens (URLs) fournis dans la section Context ci-dessus.\n" +
+      "3. Si aucun lien spécifique ne correspond parfaitement dans le Context, utilisez UNIQUEMENT le lien général: https://www.canada.ca/fr/immigration-refugies-citoyennete.html\n" +
+      "4. Incluez systématiquement l'URL source entre crochets [URL] immédiatement après l'information qu'elle justifie.\n" +
+      "5. Soyez direct et concis. Utilisez les codes CNP 2021 à 5 chiffres.\n" +
+      "6. Signalez obligatoirement les suggestions à la fin format: ===SUGGESTIONS===\n1. Tip 1\n2. Tip 2\n3. Tip 3";
 
     const aiRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
