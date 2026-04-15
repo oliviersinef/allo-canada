@@ -1049,122 +1049,103 @@ footer {
   height: 14px;
 }
 
-/* Live Immigration Alerts */
+/* Live Immigration Alerts - Premium Toast Design */
 .live-alert-banner {
-  margin: 16px 20px 24px;
-  padding: 14px 20px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(209, 31, 47, 0.2);
-  border-left: 4px solid var(--primary);
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-  animation: slideDownIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  animation: slideDownToast 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   transition: all 0.4s ease;
 }
 
 .live-alert-banner.hiding {
-  animation: slideUpOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideUpOutToast 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes slideDownIn {
-  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+@keyframes slideDownToast {
+  from { opacity: 0; transform: translateY(-30px) scale(0.9); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes slideUpOut {
+@keyframes slideUpOutToast {
   from { opacity: 1; transform: translateY(0) scale(1); }
-  to { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  to { opacity: 0; transform: translateY(-20px) scale(0.9); }
 }
 
-.live-indicator {
+.alert-toast-body {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 10px;
-  background: rgba(209, 31, 47, 0.1);
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(224, 36, 36, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(224, 36, 36, 0.2);
+  min-width: 300px;
+}
+
+.alert-toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(224, 36, 36, 0.1);
   color: var(--primary);
-  border-radius: var(--radius-full);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-}
-
-.live-indicator .dot {
-  width: 6px;
-  height: 6px;
-  background: var(--primary);
   border-radius: 50%;
-  box-shadow: 0 0 0 rgba(209, 31, 47, 0.4);
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(209, 31, 47, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(209, 31, 47, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(209, 31, 47, 0); }
+  font-size: 18px;
 }
 
 .alert-content {
   flex: 1;
-  font-size: 14px;
-  color: var(--neutral-700);
-  line-height: 1.5;
-  padding-right: 32px; /* Space for close button */
+  padding-right: 12px;
 }
 
-.alert-content strong {
-  color: var(--neutral-900);
-}
-
-.badge-score {
-  background: var(--neutral-900);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 4px;
+.alert-toast-title {
+  display: block;
+  font-size: 13px;
   font-weight: 700;
-  margin-left: 4px;
+  color: var(--neutral-900);
+  margin-bottom: 3px;
+}
+
+.alert-toast-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--neutral-600);
+}
+
+.alert-toast-desc strong {
+  color: var(--primary);
+  font-weight: 800;
 }
 
 .btn-close-alert {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
   background: transparent;
   color: var(--neutral-400);
-  padding: 8px;
-  border-radius: 50%;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  border: none;
 }
 
 .btn-close-alert:hover {
-  background: var(--neutral-100);
   color: var(--neutral-800);
 }
 
 @media (max-width: 768px) {
   .live-alert-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    margin: 10px 12px 20px;
-    padding: 12px 16px;
-  }
-  
-  .btn-close-alert {
-    top: 12px;
-    transform: none;
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
   }
 }
 

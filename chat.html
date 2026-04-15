@@ -849,14 +849,13 @@
         let currentConversationId = null;
 
         // --- Immigration Alerts Logic ---
+        let currentDrawId = null;
+
         async function fetchLatestDraw() {
             try {
-                // Use the global client initialized in auth.js/chat.js
                 const client = window.supabaseClient;
-                if (!client) {
-                    console.warn("Supabase client not yet initialized for fetchLatestDraw");
-                    return;
-                }
+                if (!client) return;
+                
                 const { data, error } = await client
                     .from('immigration_draws')
                     .select('*')
@@ -866,7 +865,12 @@
                 if (error) throw error;
                 if (data && data.length > 0) {
                     const draw = data[0];
-                    renderLiveAlert(draw);
+                    currentDrawId = draw.id;
+                    
+                    // Vérifier si l'utilisateur a déjà vu cette alerte spécifique
+                    if (!localStorage.getItem('seen_draw_' + currentDrawId)) {
+                        renderLiveAlert(draw);
+                    }
                 }
             } catch (err) {
                 console.error("Error fetching latest draw:", err);
@@ -874,12 +878,15 @@
         }
 
         function closeAlert() {
+            if (currentDrawId) {
+                localStorage.setItem('seen_draw_' + currentDrawId, 'true'); // Ne plus jamais l'afficher
+            }
             const banner = document.querySelector('.live-alert-banner');
             if (banner) {
                 banner.classList.add('hiding');
                 setTimeout(() => {
                     document.getElementById('live-alert-container').style.display = 'none';
-                }, 500);
+                }, 400); // Durée de l'animation de sortie
             }
         }
 
@@ -889,32 +896,26 @@
             const now = new Date();
             const diffDays = Math.ceil(Math.abs(now - drawDate) / (1000 * 60 * 60 * 24));
             
-            // Only show if it's within the last 5 days
+            // Uniquement si le tirage date de moins de 5 jours
             if (diffDays <= 5) {
                 container.innerHTML = `
                     <div class="live-alert-banner">
-                        <div class="live-indicator">
-                            <span class="dot"></span>
-                            NOUVEAU TIRAGE
+                        <div class="alert-toast-body">
+                            <div class="alert-toast-icon">✨</div>
+                            <div class="alert-content">
+                                <span class="alert-toast-title">Nouveau Tirage Entrée Express</span>
+                                <p class="alert-toast-desc">${draw.program} • Min: <strong>${draw.minimum_score}</strong> CRS</p>
+                            </div>
+                            <button onclick="closeAlert()" class="btn-close-alert" title="Fermer">✕</button>
                         </div>
-                        <div class="alert-content">
-                            <strong>${draw.program}</strong> : Un tirage a eu lieu le ${drawDate.toLocaleDateString('fr-FR')}. 
-                            Score minimum : <span class="badge-score">${draw.minimum_score}</span>
-                        </div>
-                        <button onclick="closeAlert()" class="btn-close-alert" title="Fermer l'alerte">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
                     </div>
                 `;
                 container.style.display = 'block';
 
-                // Auto-hide after 2 minutes (120000ms)
+                // Auto-fermeture après 30 secondes (optionnel, mais recommandé pour un toast)
                 setTimeout(() => {
                     closeAlert();
-                }, 120000);
+                }, 30000);
             }
         }
 
