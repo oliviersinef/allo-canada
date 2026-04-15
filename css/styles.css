@@ -1123,6 +1123,21 @@ footer {
   font-weight: 800;
 }
 
+.alert-toast-link {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.alert-toast-link:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
 .btn-close-alert {
   background: transparent;
   color: var(--neutral-400);
