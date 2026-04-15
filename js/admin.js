@@ -107,13 +107,19 @@ function setupEventListeners() {
         };
     }
 
+    // Knowledge Base Form
+    document.getElementById('kb-add-form')?.addEventListener('submit', addKnowledgeDocument);
+
     // Sync Buttons
-    document.getElementById('btn-sync')?.addEventListener('click', () => handleAction('sync'));
+    document.getElementById('btn-sync')?.addEventListener('click', () => { fetchKnowledge(); handleStatus('Rafraîchissement terminé', 'sync-status', 'success'); });
     document.getElementById('btn-seed')?.addEventListener('click', () => handleAction('seed'));
 
     // Settings Save
     document.getElementById('btn-save-prompt')?.addEventListener('click', saveSystemPrompt);
 }
+
+// Attach delete globally to window so inline onclick works
+window.deleteKnowledgeDocument = deleteKnowledgeDocument;
 
 /**
  * Load Tab Content
@@ -127,6 +133,8 @@ async function loadTab(tab) {
         await fetchRecentActivity();
     } else if (tab === 'users') {
         await fetchUsers();
+    } else if (tab === 'knowledge') {
+        await fetchKnowledge();
     } else if (tab === 'settings') {
         await fetchSettings();
     }
@@ -283,18 +291,117 @@ async function saveSystemPrompt() {
 }
 
 /**
+ * Knowledge Base Functions
+ */
+async function fetchKnowledge() {
+    const tbody = document.getElementById('kb-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Chargement...</td></tr>';
+    
+    try {
+        const { data, error } = await supabase.functions.invoke('chat', {
+            body: { action: 'list_documents' }
+        });
+        
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Aucun document trouvé.</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = data.map(doc => `
+            <tr>
+                <td style="font-size:12px; color:var(--neutral-500)">...${doc.id.toString().slice(-4)}</td>
+                <td style="font-weight:600">${doc.title}</td>
+                <td><a href="${doc.url || '#'}" target="_blank" style="color:var(--primary);text-decoration:none">${doc.url ? 'Lien' : '-'}</a></td>
+                <td>${new Date(doc.created_at).toLocaleDateString()}</td>
+                <td><button onclick="deleteKnowledgeDocument(${doc.id})" class="btn-delete">Supprimer</button></td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        console.error("Fetch Knowledge Error:", err);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red">Erreur de chargement</td></tr>';
+    }
+}
+
+async function addKnowledgeDocument(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-add-kb');
+    const title = document.getElementById('kb-title').value.trim();
+    const url = document.getElementById('kb-url').value.trim();
+    const content = document.getElementById('kb-content').value.trim();
+    
+    if (!title || !content) return;
+    
+    btn.disabled = true;
+    btn.textContent = 'Vectorisation en cours...';
+    handleStatus('Ajout et vectorisation (peut prendre quelques secondes)...', 'kb-add-status', 'loading');
+    
+    try {
+        const { data, error } = await supabase.functions.invoke('chat', {
+            body: { action: 'add_document', title, url, content }
+        });
+        
+        if (error || data?.error) throw error || new Error(data?.error);
+        
+        handleStatus('Document ajouté et vectorisé avec succès !', 'kb-add-status', 'success');
+        document.getElementById('kb-add-form').reset();
+        await fetchKnowledge();
+        
+    } catch (err) {
+        console.error(err);
+        handleStatus("Erreur lors de l'ajout", 'kb-add-status', 'error');
+    }
+    
+    btn.disabled = false;
+    btn.textContent = 'Ajouter à la base et Vectoriser';
+}
+
+async function deleteKnowledgeDocument(id) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer définitivement cette connaissance ?')) return;
+    
+    try {
+        const { error } = await supabase.functions.invoke('chat', {
+            body: { action: 'delete_document', id }
+        });
+        if (error) throw error;
+        handleStatus('Document supprimé', 'sync-status', 'success');
+        await fetchKnowledge();
+    } catch (err) {
+        console.error(err);
+        alert('Erreur lors de la suppression');
+    }
+}
+
+function handleStatus(msg, elementId, type) {
+    const box = document.getElementById(elementId);
+    box.textContent = msg;
+    box.className = `status-box ${type}`;
+    box.style.display = 'block';
+    setTimeout(() => box.style.display = 'none', 4000);
+}
+
+/**
  * Maintenance Actions
  */
-function handleAction(type) {
-    const statusBox = document.getElementById('sync-status');
-    statusBox.textContent = `Action "${type}" déclenchée. Veuillez patienter...`;
-    statusBox.className = 'status-box loading';
-
-    // Simulation for now
-    setTimeout(() => {
-        statusBox.textContent = `Succès : L'action ${type === 'sync' ? 'de synchronisation' : 'de seeding'} s'est terminée avec succès.`;
-        statusBox.className = 'status-box success';
-    }, 2000);
+async function handleAction(type) {
+    if (type === 'seed') {
+        if (!confirm('Attention : Cela va réinitialiser les documents de base inscrits dans le code. Continuer ?')) return;
+        
+        handleStatus('Réinitialisation (Seed) en cours (peut prendre 1-2 min)...', 'sync-status', 'loading');
+        try {
+            const { data, error } = await supabase.functions.invoke('chat', {
+                body: { action: 'seed' }
+            });
+            if (error) throw error;
+            handleStatus(`Succès : documents de base réinitialisés.`, 'sync-status', 'success');
+            await fetchKnowledge();
+        } catch (err) {
+            console.error(err);
+            handleStatus('Erreur lors du seed', 'sync-status', 'error');
+        }
+    }
 }
 
 // Start

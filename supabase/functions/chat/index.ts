@@ -219,6 +219,53 @@ serve(async (req: Request) => {
         });
     }
 
+    if (action === 'list_documents') {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/canada_documents?select=id,url,title,created_at&order=created_at.desc`, {
+            headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` }
+        });
+        const data = await res.json();
+        return new Response(JSON.stringify(data), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+    }
+
+    if (action === 'delete_document') {
+        const { id } = body;
+        await fetch(`${SUPABASE_URL}/rest/v1/canada_documents?id=eq.${id}`, {
+            method: 'DELETE',
+            headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` }
+        });
+        return new Response(JSON.stringify({ status: "deleted" }), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+    }
+
+    if (action === 'add_document') {
+        const { url, title, content } = body;
+        if (!title || !content) {
+            return new Response(JSON.stringify({ error: "Titre et Contenu requis" }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
+        }
+
+        const embedding = await generateEmbedding(content);
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/canada_documents`, {
+            method: 'POST',
+            headers: { 
+                'apikey': SUPABASE_SERVICE_ROLE_KEY, 
+                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({ url, title, content, embedding })
+        });
+        const data = await res.json();
+        return new Response(JSON.stringify({ status: "added", data }), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+    }
+
     if (action === 'sync') {
         return new Response(JSON.stringify({ status: "sync_not_implemented_yet" }), {
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }

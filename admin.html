@@ -129,14 +129,56 @@
             </div>
 
             <div id="tab-knowledge" class="tab-pane">
+                <div class="content-card knowledge-form-card">
+                    <h3>Ajouter une nouvelle connaissance</h3>
+                    <p style="margin-bottom: 20px; color: var(--neutral-600); font-size: 14px;">Boostez l'IA avec de nouveaux liens ou du contenu brut. L'intégration (embedding) est automatique.</p>
+                    
+                    <form id="kb-add-form" class="admin-form">
+                        <div class="form-group">
+                            <label for="kb-url">Lien officiel (Optionnel mais recommandé)</label>
+                            <input type="url" id="kb-url" class="form-input" placeholder="https://www.canada.ca/...">
+                        </div>
+                        <div class="form-group">
+                            <label for="kb-title">Titre du document *</label>
+                            <input type="text" id="kb-title" class="form-input" placeholder="Ex: Frais biométriques 2025" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="kb-content">Contenu (Texte brut ou Markdown) *</label>
+                            <textarea id="kb-content" class="admin-textarea" rows="6" placeholder="Collez ici le texte que l'IA devra utiliser pour répondre aux questions..." required style="margin-top: 0;"></textarea>
+                        </div>
+                        <div class="admin-actions" style="margin-top: 8px;">
+                            <button type="submit" id="btn-add-kb" class="btn-action primary">Ajouter à la base et Vectoriser</button>
+                        </div>
+                        <div id="kb-add-status" class="status-box"></div>
+                    </form>
+                </div>
+
                 <div class="content-card">
-                    <h3>Synchronisation Canada.ca</h3>
-                    <p>Déclenchez la mise à jour forcée des documents depuis les sources gouvernementales.</p>
-                    <div class="admin-actions">
-                        <button id="btn-sync" class="btn-action primary">Synchroniser les sources</button>
-                        <button id="btn-seed" class="btn-action secondary">Réinitialiser la base (Seed)</button>
+                    <div class="card-header">
+                        <h3>Documents Indexés</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="btn-sync" class="btn-action secondary" style="padding: 8px 16px;">Rafraîchir la liste</button>
+                            <button id="btn-seed" class="btn-action secondary" style="padding: 8px 16px; border-color: #F87171; color: #DC2626;" title="Restaurer les documents vitaux du code source">Réinitialiser (Seed)</button>
+                        </div>
                     </div>
                     <div id="sync-status" class="status-box"></div>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Titre</th>
+                                    <th>Lien</th>
+                                    <th>Ajouté le</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kb-table-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
