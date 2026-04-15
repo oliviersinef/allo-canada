@@ -259,11 +259,11 @@ serve(async (req: Request) => {
     }
 
     const finalPrompt = systemPrompt + "\n\nContext:\n" + contextLines + 
-      "\n\nInstructions Critiques de Sécurité:\n" +
-      "1. Ne JAMAIS inventer, deviner ou halluciner une URL. Toute URL non présente dans le Context est strictement interdite.\n" +
-      "2. Utilisez EXCLUSIVEMENT les liens (URLs) fournis dans la section Context ci-dessus.\n" +
-      "3. S'il n'y a pas de lien spécifique correspondant dans le Context, ne donnez AUCUN lien. Dites simplement que l'information n'est pas assortie d'un lien officiel dans vos documents actuels.\n" +
-      "4. Incluez systématiquement l'URL source entre crochets [URL] immédiatement après l'information qu'elle justifie.\n" +
+      "\n\nInstructions Critiques de Sécurité et Style:\n" +
+      "1. Ne JAMAIS inventer, deviner ou halluciner une URL. Toute URL non présente dans le Context ou l'instruction ci-dessous est strictement interdite.\n" +
+      "2. Utilisez PRIORITAIREMENT les liens (URLs) fournis dans la section Context ci-dessus.\n" +
+      "3. Pour toute information générale ou si aucun lien spécifique n'est trouvé dans le Context, utilisez EXCLUSIVEMENT ce lien officiel : [Site officiel d'Immigration et Citoyenneté Canada](https://www.canada.ca/fr/immigration-refugies-citoyennete.html).\n" +
+      "4. ESTHÉTIQUE : Ne JAMAIS afficher d'URL en clair (texte brut). Utilisez TOUJOURS le format Markdown pour créer des hyperliens élégants, par exemple : [Source officielle](URL) ou [Consulter les détails sur Canada.ca](URL).\n" +
       "5. Soyez direct et concis. Utilisez les codes CNP 2021 à 5 chiffres.\n" +
       "6. Signalez obligatoirement les suggestions à la fin format: ===SUGGESTIONS===\n1. Tip 1\n2. Tip 2\n3. Tip 3";
 
