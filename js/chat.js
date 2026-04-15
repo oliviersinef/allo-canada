@@ -38,6 +38,11 @@ async function init() {
     updateAuthUI();
     updateGuestLimitUI();
 
+    // Force close any stuck overlays (especially after login redirect)
+    document.querySelectorAll('.modal-overlay').forEach(overlay => overlay.classList.remove('open'));
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (backdrop) backdrop.classList.remove('active');
+
     // Check if we should start a chat from URL
     const params = new URLSearchParams(window.location.search);
     const query = params.get('q');
@@ -942,6 +947,9 @@ function updateGuestLimitUI() {
         }
     } else {
         limitInfo.style.display = 'none';
+        // Ensure modal is closed if user is logged in
+        const limitModal = document.getElementById('limit-modal-overlay');
+        if (limitModal) limitModal.classList.remove('open');
     }
 }
 
