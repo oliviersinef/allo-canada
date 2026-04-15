@@ -868,6 +868,7 @@
                     const draw = {
                         id: latestRound.drawNumber, // Use the official draw number as unique ID
                         draw_date: latestRound.drawDate,
+                        draw_date_full: latestRound.drawDateFull || latestRound.drawDate,
                         program: latestRound.drawName,
                         minimum_score: latestRound.drawCRS,
                         invitations_issued: latestRound.drawSize
@@ -911,7 +912,7 @@
                         <div class="alert-toast-body">
                             <div class="alert-toast-icon">✨</div>
                             <div class="alert-content">
-                                <span class="alert-toast-title">Nouveau Tirage Entrée Express</span>
+                                <span class="alert-toast-title">Nouveau Tirage • ${draw.draw_date_full}</span>
                                 <p class="alert-toast-desc">${draw.program} • Min: <strong>${draw.minimum_score}</strong> CRS</p>
                             </div>
                             <button onclick="closeAlert()" class="btn-close-alert" title="Fermer">✕</button>
