@@ -161,6 +161,11 @@ serve(async (req: Request) => {
             content: `CRÉATION DU COMPTE WES POUR L'ÉVALUATION DES DIPLÔMES (EDE) :
             WES is one of the organizations designated by IRCC to perform the ECA required for immigration to Canada.
             ...`
+          },
+          {
+            url: 'https://www.guichetemplois.gc.ca/trouverunemploi/concepteur-cv',
+            title: 'Concepteur de CV - Guichet-Emplois',
+            content: "Le Concepteur de CV officiel du Guichet-Emplois (Gouvernement du Canada) permet de concevoir gratuitement un CV aux normes canadiennes. Il propose des modèles adaptés aux professionnels expérimentés (modèle traditionnel) ou aux nouveaux arrivants et jeunes diplômés. L'outil aide à utiliser la terminologie appropriée et à aligner ses compétences avec les exigences des employeurs canadiens."
           }
         ];
 
