@@ -447,6 +447,10 @@ function renderSessions() {
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     Exporter en Word
                 </button>
+                <button class="dropdown-item" data-action="export-pdf">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg>
+                    Exporter en PDF
+                </button>
                 <button class="dropdown-item danger" data-action="delete">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     Supprimer
@@ -482,6 +486,7 @@ if (sessionsList) {
             if (action === 'rename') openRenameModal(id, session.title);
             if (action === 'copy') copySession(id);
             if (action === 'export-word') exportSessionToWord(id);
+            if (action === 'export-pdf') exportSessionToPDF(id);
             if (action === 'delete') deleteSession(id);
             return;
         }
@@ -694,6 +699,120 @@ async function exportSessionToWord(id) {
     
     showToast("Document Word généré avec succès");
 }
+
+/**
+ * Export session to nice PDF using an iframe standard print method
+ */
+function exportSessionToPDF(id) {
+    const session = sessions.find(s => s.id === id);
+    if (!session) return;
+
+    const exportDate = new Date().toLocaleDateString('fr-FR', { 
+        day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+    });
+
+    const header = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='utf-8'>
+            <title>${session.title}</title>
+            <style>
+                body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1F2937; padding: 20px; }
+                .header-section { text-align: center; border-bottom: 2px solid #E02424; padding-bottom: 20px; margin-bottom: 30px; }
+                .brand-title { font-size: 24px; font-weight: 800; color: #E02424; margin-bottom: 5px; }
+                .brand-subtitle { font-size: 14px; color: #6B7280; font-style: italic; }
+                .doc-info { font-size: 12px; color: #9CA3AF; margin-top: 10px; }
+                
+                .message-container { margin-bottom: 25px; page-break-inside: avoid; }
+                .bubble-wrap { padding: 15px; border-radius: 8px; border: 1px solid #E5E7EB; }
+                .user-style { border-left: 4px solid #1A56DB; background-color: #ffffff; }
+                .assistant-style { background-color: #F9FAFB; border-left: 4px solid #10A37F; }
+                
+                .role-label { font-size: 11px; font-weight: 700; margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 1px; }
+                .label-user { color: #1A56DB; }
+                .label-assistant { color: #10A37F; }
+                
+                .text-content { font-size: 14px; color: #374151; }
+                .text-content p { margin: 8px 0; }
+                
+                table { border-collapse: collapse; width: 100%; margin: 15px 0; border: 1px solid #E5E7EB; }
+                th { background-color: #E02424; color: #ffffff; padding: 10px; text-align: left; font-size: 13px; }
+                td { padding: 10px; border: 1px solid #E5E7EB; font-size: 13px; vertical-align: top; }
+                tr:nth-child(even) { background-color: #F3F4F6; }
+                
+                .footer-section { margin-top: 50px; font-size: 12px; color: #9CA3AF; text-align: center; border-top: 1px solid #E5E7EB; padding-top: 20px; }
+                .notice { font-size: 11px; color: #6B7280; margin-top: 8px; }
+                @media print {
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 20px; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class='header-section'>
+                <div class='brand-title'>ALLO CANADA</div>
+                <div class='brand-subtitle'>Votre Assistant Expert en Immigration</div>
+                <div class='doc-info'>
+                    Compte-rendu de consultation : <strong>${session.title}</strong><br>
+                    Généré le ${exportDate}
+                </div>
+            </div>
+    `;
+
+    let body = "";
+    session.history.forEach(m => {
+        const isUser = m.role === 'user';
+        const roleLabel = isUser ? 'VOTRE QUESTION' : 'RÉPONSE D\\'ALLO CANADA';
+        const boxClass = isUser ? 'user-style' : 'assistant-style';
+        const labelClass = isUser ? 'label-user' : 'label-assistant';
+        
+        let htmlContent = formatText(m.content);
+        
+        body += \`
+            <div class='message-container'>
+                <div class='bubble-wrap \${boxClass}'>
+                    <div class='role-label \${labelClass}'>\${roleLabel}</div>
+                    <div class='text-content'>\${htmlContent}</div>
+                </div>
+            </div>
+        \`;
+    });
+
+    const footer = `
+            <div class='footer-section'>
+                Document officiel généré par la plateforme Allo Canada (www.allocanada.ca)<br>
+                <div class='notice'>
+                    <strong>Avertissement :</strong> Ce document est fourni à titre informatif. Seules les informations publiées sur Canada.ca ou communiquées officiellement par l'IRCC font foi en matière d'immigration.
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    const fullHtml = header + body + footer;
+    
+    showToast("Préparation du PDF...");
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+    
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(fullHtml);
+    doc.close();
+    
+    setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 500);
+}
+
 
 /**
  * Merge local guest sessions into Supabase account after login

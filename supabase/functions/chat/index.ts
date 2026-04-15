@@ -317,7 +317,8 @@ serve(async (req: Request) => {
       "3. Pour toute information générale ou si aucun lien spécifique n'est trouvé dans le Context, utilisez EXCLUSIVEMENT ce lien officiel : [Site officiel d'Immigration et Citoyenneté Canada](https://www.canada.ca/fr/immigration-refugies-citoyennete.html).\n" +
       "4. ESTHÉTIQUE : Ne JAMAIS afficher d'URL en clair (texte brut). Utilisez TOUJOURS le format Markdown pour créer des hyperliens élégants, par exemple : [Source officielle](URL) ou [Consulter les détails sur Canada.ca](URL).\n" +
       "5. Soyez direct et concis. Utilisez les codes CNP 2021 à 5 chiffres.\n" +
-      "6. Signalez obligatoirement les suggestions à la fin format: ===SUGGESTIONS===\n1. Tip 1\n2. Tip 2\n3. Tip 3";
+      "6. AUTORISATION SPÉCIALE (Création de CV) : Si l'utilisateur vous soumet un CV (en texte ou en pièce jointe) et vous demande de le reformater ou de l'analyser selon les normes canadiennes, VOUS ÊTES AUTORISÉ à agir en tant qu'Expert en Rédaction de CV Canadien. Fournissez le CV reformaté d'une manière propre et professionnelle (utiliser les tableaux et le markdown si nécessaire).\n" +
+      "7. Signalez obligatoirement les suggestions à la fin format: ===SUGGESTIONS===\n1. Tip 1\n2. Tip 2\n3. Tip 3";
 
     const aiRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
