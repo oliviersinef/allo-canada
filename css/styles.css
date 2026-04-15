@@ -762,6 +762,15 @@ footer {
   display: none;
 }
 
+/* Mobile Header - hidden on desktop */
+.mobile-header {
+  display: none;
+}
+
+.mobile-sidebar-toggle {
+  display: none;
+}
+
 /* Main Chat Area Overlay */
 .main-chat {
   flex: 1;

@@ -244,8 +244,57 @@
         }
 
         @media (max-width: 768px) {
-            .mobile-header { display: flex; justify-content: center; }
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+                position: sticky;
+                top: 0;
+                background: white;
+                z-index: 100;
+                border-bottom: 1px solid var(--neutral-200);
+            }
             #sidebar-toggle-open { display: flex; }
+
+            .mobile-sidebar-toggle {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                background: transparent;
+                border: none;
+                color: var(--neutral-700);
+                cursor: pointer;
+                padding: 8px;
+                border-radius: var(--radius-md);
+                transition: all 0.2s;
+            }
+
+            .mobile-sidebar-toggle:hover {
+                background: var(--neutral-100);
+            }
+
+            .sidebar-backdrop {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(2px);
+                z-index: 1000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .sidebar-backdrop.active {
+                display: block;
+                opacity: 1;
+            }
+
+            .chat-messages {
+                padding-top: 0 !important;
+            }
         }
 
         /* Custom Modal Styles */
@@ -583,9 +632,20 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><path d="m11 15 3-3-3-3"></path></svg>
             </button>
 
+            <!-- Sidebar Backdrop for Mobile -->
+            <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebarMobile()"></div>
+
             <!-- Mobile Header (Hidden on Desktop) -->
             <div class="mobile-header">
-                <div style="width:24px"></div><!-- Spacer -->
+                <button class="mobile-sidebar-toggle" style="display:none" onclick="openSidebarMobile()" aria-label="Ouvrir le menu">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <span style="flex:1; text-align:center; font-size:15px; font-weight:600; color:var(--neutral-800)">Allo Canada</span>
+                <div style="width:38px"></div><!-- Spacer for symmetry -->
             </div>
 
             <!-- Messages Area -->
@@ -693,9 +753,22 @@
             
             if (isMobile) {
                 sidebar.classList.toggle('open');
+                document.getElementById('sidebar-backdrop').classList.toggle('active', sidebar.classList.contains('open'));
             } else {
                 sidebar.classList.toggle('collapsed');
             }
+        }
+
+        function openSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.add('open');
+            document.getElementById('sidebar-backdrop').classList.add('active');
+        }
+
+        function closeSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.remove('open');
+            document.getElementById('sidebar-backdrop').classList.remove('active');
         }
 
         // Auto-resize textarea and handle dynamic aesthetics
