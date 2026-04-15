@@ -762,20 +762,20 @@ function exportSessionToPDF(id) {
     let body = "";
     session.history.forEach(m => {
         const isUser = m.role === 'user';
-        const roleLabel = isUser ? 'VOTRE QUESTION' : 'RÉPONSE D\\'ALLO CANADA';
+        const roleLabel = isUser ? 'VOTRE QUESTION' : "RÉPONSE D'ALLO CANADA";
         const boxClass = isUser ? 'user-style' : 'assistant-style';
         const labelClass = isUser ? 'label-user' : 'label-assistant';
         
         let htmlContent = formatText(m.content);
         
-        body += \`
+        body += `
             <div class='message-container'>
-                <div class='bubble-wrap \${boxClass}'>
-                    <div class='role-label \${labelClass}'>\${roleLabel}</div>
-                    <div class='text-content'>\${htmlContent}</div>
+                <div class='bubble-wrap ${boxClass}'>
+                    <div class='role-label ${labelClass}'>${roleLabel}</div>
+                    <div class='text-content'>${htmlContent}</div>
                 </div>
             </div>
-        \`;
+        `;
     });
 
     const footer = `
