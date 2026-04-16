@@ -1478,51 +1478,93 @@ function initPresence() {
 }
 
 /**
- * Fetch and display the latest Express Entry draw alert
+ * Fetch and display the latest Express Entry draw alert from official IRCC API
  */
 async function initExpressEntryAlert() {
     if (!currentUser) return;
 
     try {
-        const { data: draw, error } = await dbClient
-            .from('immigration_draws')
-            .select('*')
-            .eq('is_active', true)
-            .order('draw_date', { ascending: false })
-            .limit(1)
-            .single();
+        // Fetch directly from official Canada.ca JSON endpoint
+        const response = await fetch('https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_fr.json');
+        
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        
+        const data = await response.json();
+        
+        if (data && data.rounds && data.rounds.length > 0) {
+            const latestRound = data.rounds[0];
+            const drawId = latestRound.drawNumber;
+            
+            // Check if user has already closed this specific alert
+            if (localStorage.getItem('seen_draw_' + drawId)) return;
 
-        if (error || !draw) return;
+            const drawDate = new Date(latestRound.drawDate);
+            const now = new Date();
+            const diffDays = Math.ceil(Math.abs(now - drawDate) / (1000 * 60 * 60 * 24));
+            
+            // Only show if the draw is within 5 days
+            if (diffDays <= 5) {
+                const container = document.getElementById('live-alert-container');
+                if (!container) return;
 
-        const container = document.getElementById('live-alert-container');
-        if (!container) return;
-
-        // Extract dates and format
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        const dateStr = new Date(draw.draw_date).toLocaleDateString('fr-FR', options);
-
-        container.innerHTML = `
-            <div class="draw-alert-banner">
-                <div class="draw-alert-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                </div>
-                <div class="draw-alert-content">
-                    <div class="draw-alert-title">ALERTE IMMIGRATION : Nouveau tirage Entrée Express</div>
-                    <div class="draw-alert-text">
-                        Un tirage pour le programme <strong>${draw.program}</strong> a eu lieu le <strong>${dateStr}</strong>. 
-                        <strong>${draw.invitations_count}</strong> invitations envoyées avec un score minimum de <strong>${draw.minimum_score}</strong>.
+                // Simple White HTML Structure (As per user request)
+                container.innerHTML = `
+                    <div class="live-alert-banner">
+                        <div class="alert-toast-body">
+                            <div class="alert-toast-icon">✨</div>
+                            <div class="alert-content">
+                                <span class="alert-toast-title">Nouveau Tirage • ${latestRound.drawDateFull || latestRound.drawDate}</span>
+                                <p class="alert-toast-desc">${latestRound.drawName} • Min: <strong>${latestRound.drawCRS}</strong> CRS</p>
+                                <a href="https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/entree-express/rondes-invitations.html" target="_blank" rel="noopener noreferrer" class="alert-toast-link">Voir les détails officiels →</a>
+                            </div>
+                            <button onclick="closeEntryAlert('${drawId}')" class="btn-close-alert" title="Fermer">✕</button>
+                        </div>
                     </div>
-                    <a href="${draw.link}" target="_blank" class="draw-alert-link">
-                        Voir les détails officiels sur Canada.ca
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    </a>
-                </div>
-            </div>
-        `;
-        container.style.display = 'block';
+                `;
+                container.style.display = 'block';
+            }
+        }
     } catch (err) {
-        console.error("Erreur lors du chargement de l'alerte immigration:", err);
+        console.error("Error fetching latest official IRCC draw:", err);
     }
+}
+
+// Global function to close and hide
+window.closeEntryAlert = (drawId) => {
+    if (drawId) localStorage.setItem('seen_draw_' + drawId, 'true');
+    const banner = document.querySelector('.live-alert-banner');
+    if (banner) {
+        banner.classList.add('hiding');
+        setTimeout(() => {
+            const container = document.getElementById('live-alert-container');
+            if (container) container.style.display = 'none';
+        }, 400);
+    }
+};
+
+/**
+ * Presence Logic for Live Monitoring (Sync with Admin Map)
+ */
+function initPresence() {
+    if (!currentUser) return;
+    
+    // Extract country and name from metadata
+    const country = currentUser.user_metadata?.country || "Inconnu";
+    const fullName = currentUser.user_metadata?.full_name || currentUser.email;
+    
+    const channel = dbClient.channel('online-users');
+    
+    channel
+        .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await channel.track({
+                    user_id: currentUser.id,
+                    full_name: fullName,
+                    country: country,
+                    online_at: new Date().toISOString(),
+                });
+            }
+        });
 }
 
 // Global exports for HTML event handlers
@@ -1532,19 +1574,3 @@ window.startNewChat = startNewChat;
 
 // Initial Run
 init();
-
-// --- Realtime Presence ---
-async function initPresence() {
-    const channel = dbClient.channel('online-users');
-    await channel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-            const { data: { user } } = await dbClient.auth.getUser();
-            await channel.track({
-                user_id: user?.id || 'guest',
-                online_at: new Date().toISOString(),
-                page: 'chat'
-            });
-        }
-    });
-}
-initPresence();
