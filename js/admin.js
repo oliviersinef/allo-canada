@@ -63,6 +63,17 @@ async function initAdmin() {
 }
 
 /**
+ * Helper to normalize country names for consistent aggregation
+ */
+function formatCountryName(name) {
+    if (!name || typeof name !== 'string') return 'Inconnu';
+    const trimmed = name.trim();
+    if (!trimmed || trimmed.toLowerCase() === 'inconnu') return 'Inconnu';
+    // Standardize to Sentence case (e.g., "France", "Cameroun")
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
+/**
  * Presence Logic for Live Counting
  */
 function initPresence() {
@@ -78,7 +89,7 @@ function initPresence() {
             const presenceCounts = {};
             Object.values(state).forEach(presences => {
                 presences.forEach(p => {
-                    const c = p.country || 'Inconnu';
+                    const c = formatCountryName(p.country);
                     presenceCounts[c] = (presenceCounts[c] || 0) + 1;
                 });
             });
@@ -202,7 +213,7 @@ async function fetchCountryDistribution() {
     const { data: raw } = await supabase.from('profiles').select('country');
     const counts = {};
     raw?.forEach(r => {
-        const c = r.country || 'Inconnu';
+        const c = formatCountryName(r.country);
         counts[c] = (counts[c] || 0) + 1;
     });
     const stats = Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count);
