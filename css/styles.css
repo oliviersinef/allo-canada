@@ -1049,6 +1049,45 @@ footer {
   height: 14px;
 }
 
+/* CV Download Button */
+.cv-download-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--neutral-200);
+}
+
+.btn-download-cv {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #059669, #047857);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+}
+
+.btn-download-cv:hover {
+  background: linear-gradient(135deg, #047857, #065f46);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+}
+
+.btn-download-cv:active {
+  transform: translateY(0);
+}
+
+.btn-download-cv svg {
+  flex-shrink: 0;
+}
+
 /* Live Immigration Alerts - Premium Toast Design */
 .live-alert-banner {
   position: fixed;

@@ -317,7 +317,14 @@ serve(async (req: Request) => {
       "3. Pour toute information générale ou si aucun lien spécifique n'est trouvé dans le Context, utilisez EXCLUSIVEMENT ce lien officiel : [Site officiel d'Immigration et Citoyenneté Canada](https://www.canada.ca/fr/immigration-refugies-citoyennete.html).\n" +
       "4. ESTHÉTIQUE : Ne JAMAIS afficher d'URL en clair (texte brut). Utilisez TOUJOURS le format Markdown pour créer des hyperliens élégants, par exemple : [Source officielle](URL) ou [Consulter les détails sur Canada.ca](URL).\n" +
       "5. Soyez direct et concis. Utilisez les codes CNP 2021 à 5 chiffres.\n" +
-      "6. AUTORISATION SPÉCIALE (Création de CV) : Si l'utilisateur vous soumet un CV (en texte ou en pièce jointe) et vous demande de le reformater ou de l'analyser selon les normes canadiennes, VOUS ÊTES AUTORISÉ à agir en tant qu'Expert en Rédaction de CV Canadien. Fournissez le CV reformaté d'une manière propre et professionnelle (utiliser les tableaux et le markdown si nécessaire).\n" +
+      "6. AUTORISATION SPÉCIALE (Création de CV) : Si l'utilisateur soumet un CV pour reformatage canadien, RÈGLES STRICTES :\n" +
+      "   a) NE JAMAIS ajouter de texte d'introduction (pas de 'Voici votre CV reformaté...', pas de 'CV Canadien Reformulé', pas d'explication).\n" +
+      "   b) NE JAMAIS inclure d'en-tête Allo Canada ou de branding.\n" +
+      "   c) Commencer DIRECTEMENT par le nom complet du candidat en titre (# Prénom NOM), suivi de ses coordonnées.\n" +
+      "   d) Utiliser des icônes Unicode simples et élégantes pour chaque section : 📧 Email, 📱 Téléphone, 📍 Ville, 🔗 LinkedIn.\n" +
+      "   e) Structure canadienne obligatoire dans cet ordre : Coordonnées → Profil professionnel (3 lignes max) → Compétences clés → Expérience professionnelle (du plus récent au plus ancien, avec réalisations en puces) → Formation → Langues → Certifications/Autres.\n" +
+      "   f) Style : PROPRE et MINIMALISTE. Utiliser des tirets (—) comme séparateurs, des puces simples (•), des titres en gras. PAS de tableaux pour le CV. PAS de couleurs. PAS de fioritures.\n" +
+      "   g) NE JAMAIS ajouter de texte de conclusion ou commentaire après le CV.\n" +
       "7. Les suggestions à la fin DOIVENT être 3 COURTES questions de relance (max 10 mots) que l'utilisateur pourrait vous poser, SANS aucune explication. Format exact:\n===SUGGESTIONS===\n1. Question courte 1 ?\n2. Question courte 2 ?\n3. Question courte 3 ?";
 
     const aiRes = await fetch('https://api.deepseek.com/v1/chat/completions', {

@@ -1125,8 +1125,154 @@ function addMessageToUI(role, text, animate = true) {
             container.appendChild(btn);
             table.parentNode.insertBefore(container, table);
         });
+
+        // --- CV Detection: add download button if this looks like a CV ---
+        const cvKeywords = ['expérience professionnelle', 'formation', 'compétences', 'profil professionnel', 'langues'];
+        const lowerText = text.toLowerCase();
+        const matchCount = cvKeywords.filter(kw => lowerText.includes(kw)).length;
+        
+        if (matchCount >= 3) {
+            const cvBtnContainer = document.createElement('div');
+            cvBtnContainer.className = 'cv-download-container';
+            cvBtnContainer.innerHTML = `
+                <button class="btn-download-cv" onclick="exportCVToWord(this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                    Télécharger le CV (Word)
+                </button>
+            `;
+            // Store raw markdown content on the button for export
+            cvBtnContainer.querySelector('.btn-download-cv').dataset.cvContent = text;
+            bubble.appendChild(cvBtnContainer);
+        }
     }
 }
+
+/**
+ * Export a CV message as a clean Word document (no Allo Canada branding)
+ */
+window.exportCVToWord = function(btnElement) {
+    const rawContent = btnElement.dataset.cvContent;
+    if (!rawContent) return;
+
+    const htmlContent = formatText(rawContent);
+
+    const fullHtml = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+              xmlns:w='urn:schemas-microsoft-com:office:word' 
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+            <meta charset='utf-8'>
+            <title>CV</title>
+            <!--[if gte mso 9]>
+            <xml>
+                <w:WordDocument>
+                    <w:View>Print</w:View>
+                    <w:Zoom>100</w:Zoom>
+                    <w:DoNotOptimizeForBrowser/>
+                </w:WordDocument>
+            </xml>
+            <![endif]-->
+            <style>
+                @page {
+                    margin: 2.5cm 2cm;
+                }
+                body {
+                    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
+                    font-size: 11pt;
+                    line-height: 1.5;
+                    color: #1F2937;
+                    margin: 0;
+                    padding: 0;
+                }
+                h1 {
+                    font-size: 22pt;
+                    font-weight: 700;
+                    color: #111827;
+                    margin-bottom: 4pt;
+                    border-bottom: 2pt solid #374151;
+                    padding-bottom: 8pt;
+                }
+                h2 {
+                    font-size: 13pt;
+                    font-weight: 700;
+                    color: #1F2937;
+                    text-transform: uppercase;
+                    letter-spacing: 1pt;
+                    border-bottom: 1pt solid #D1D5DB;
+                    padding-bottom: 4pt;
+                    margin-top: 18pt;
+                    margin-bottom: 8pt;
+                }
+                h3 {
+                    font-size: 11.5pt;
+                    font-weight: 700;
+                    color: #374151;
+                    margin-bottom: 2pt;
+                    margin-top: 10pt;
+                }
+                p {
+                    margin: 4pt 0;
+                    color: #374151;
+                }
+                ul {
+                    margin: 4pt 0 8pt 18pt;
+                    padding: 0;
+                }
+                li {
+                    margin-bottom: 3pt;
+                    color: #4B5563;
+                }
+                strong {
+                    color: #111827;
+                }
+                em {
+                    color: #6B7280;
+                    font-style: italic;
+                }
+                a {
+                    color: #2563EB;
+                    text-decoration: none;
+                }
+                hr {
+                    border: none;
+                    border-top: 1pt solid #E5E7EB;
+                    margin: 12pt 0;
+                }
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin: 10pt 0;
+                }
+                th, td {
+                    padding: 6pt 10pt;
+                    border: 1pt solid #D1D5DB;
+                    font-size: 10.5pt;
+                    text-align: left;
+                }
+                th {
+                    background-color: #F3F4F6;
+                    font-weight: 700;
+                }
+            </style>
+        </head>
+        <body>
+            ${htmlContent}
+        </body>
+        </html>
+    `;
+
+    const blob = new Blob(['\ufeff', fullHtml], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'CV-Canadien.doc';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast("CV téléchargé avec succès");
+};
 
 /**
  * Format markdown-like text
