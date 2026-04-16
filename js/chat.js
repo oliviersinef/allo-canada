@@ -56,6 +56,7 @@ async function init() {
         if (currentUser) {
             await mergeGuestSessions(); // Move guest data to DB
             await fetchUserSessions(); // Refresh from DB
+            initExpressEntryAlert(); // Check for immigration draws
         } else {
             renderSessions(); // For guests, show empty/local
         }
@@ -1448,6 +1449,54 @@ function exportTableToCSV(tableElement, filename) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+/**
+ * Fetch and display the latest Express Entry draw alert
+ */
+async function initExpressEntryAlert() {
+    if (!currentUser) return;
+
+    try {
+        const { data: draw, error } = await dbClient
+            .from('immigration_draws')
+            .select('*')
+            .eq('is_active', true)
+            .order('draw_date', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (error || !draw) return;
+
+        const container = document.getElementById('live-alert-container');
+        if (!container) return;
+
+        // Extract dates and format
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const dateStr = new Date(draw.draw_date).toLocaleDateString('fr-FR', options);
+
+        container.innerHTML = `
+            <div class="draw-alert-banner">
+                <div class="draw-alert-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </div>
+                <div class="draw-alert-content">
+                    <div class="draw-alert-title">ALERTE IMMIGRATION : Nouveau tirage Entrée Express</div>
+                    <div class="draw-alert-text">
+                        Un tirage pour le programme <strong>${draw.program}</strong> a eu lieu le <strong>${dateStr}</strong>. 
+                        <strong>${draw.invitations_count}</strong> invitations envoyées avec un score minimum de <strong>${draw.minimum_score}</strong>.
+                    </div>
+                    <a href="${draw.link}" target="_blank" class="draw-alert-link">
+                        Voir les détails officiels sur Canada.ca
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </a>
+                </div>
+            </div>
+        `;
+        container.style.display = 'block';
+    } catch (err) {
+        console.error("Erreur lors du chargement de l'alerte immigration:", err);
+    }
 }
 
 // Global exports for HTML event handlers
