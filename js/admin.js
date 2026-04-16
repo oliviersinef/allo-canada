@@ -73,6 +73,25 @@ function initPresence() {
             const state = channel.presenceState();
             const count = Object.keys(state).length;
             document.getElementById('live-users-count').textContent = count;
+
+            // Agreger les pays en temps réel
+            const presenceCounts = {};
+            Object.values(state).forEach(presences => {
+                presences.forEach(p => {
+                    const c = p.country || 'Inconnu';
+                    presenceCounts[c] = (presenceCounts[c] || 0) + 1;
+                });
+            });
+
+            // Transformer en format stats
+            const presenceStats = Object.entries(presenceCounts)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a, b) => b.count - a.count);
+
+            // Mettre à jour la carte et la liste si on est sur l'aperçu
+            if (currentTab === 'overview') {
+                renderCountryDistribution(presenceStats);
+            }
         })
         .subscribe();
 }
@@ -178,6 +197,8 @@ const countryToIso = {
 };
 
 async function fetchCountryDistribution() {
+    // Par défaut au chargement, on peut montrer les profils totaux 
+    // ou attendre le sync de présence. Ici on fetch les profils pour avoir une base.
     const { data: raw } = await supabase.from('profiles').select('country');
     const counts = {};
     raw?.forEach(r => {
@@ -185,6 +206,16 @@ async function fetchCountryDistribution() {
         counts[c] = (counts[c] || 0) + 1;
     });
     const stats = Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count);
+    
+    // Note: initPresence prendra le relais dès que les données arrivent
+    renderCountryDistribution(stats);
+}
+
+/**
+ * Render Map and Country List
+ * @param {Array} stats Array of {name, count}
+ */
+function renderCountryDistribution(stats) {
 
     // 1. Populate Hidden Overlay List
     const container = document.getElementById('country-list');

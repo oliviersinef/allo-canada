@@ -57,6 +57,7 @@ async function init() {
             await mergeGuestSessions(); // Move guest data to DB
             await fetchUserSessions(); // Refresh from DB
             initExpressEntryAlert(); // Check for immigration draws
+            initPresence(); // Track online status for admin dashboard
         } else {
             renderSessions(); // For guests, show empty/local
         }
@@ -1449,6 +1450,31 @@ function exportTableToCSV(tableElement, filename) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+/**
+ * Presence Logic for Live Monitoring
+ */
+function initPresence() {
+    if (!currentUser) return;
+    
+    // Extract country and name from metadata
+    const country = currentUser.user_metadata?.country || "Inconnu";
+    const fullName = currentUser.user_metadata?.full_name || currentUser.email;
+    
+    const channel = dbClient.channel('online-users');
+    
+    channel
+        .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await channel.track({
+                    user_id: currentUser.id,
+                    full_name: fullName,
+                    country: country,
+                    online_at: new Date().toISOString(),
+                });
+            }
+        });
 }
 
 /**
