@@ -330,7 +330,8 @@ serve(async (req: Request) => {
       "      - STYLE D (Compact/Impact) : Titres encadrés par des symboles discrets (ex: == TITRE ==), puces fléchées (►), focus sur les chiffres et résultats.\n" +
       "      STRICT : PAS de tableaux HTML, PAS de couleurs, PAS d'images. Uniquement du Markdown standard.\n" +
       "   g) NE JAMAIS ajouter de texte de conclusion ou commentaire après le CV.\n" +
-      "7. Les suggestions à la fin DOIVENT être 3 COURTES questions de relance (max 10 mots) que l'utilisateur pourrait vous poser, SANS aucune explication. Format exact:\n===SUGGESTIONS===\n1. Question courte 1 ?\n2. Question courte 2 ?\n3. Question courte 3 ?";
+      "7. Les suggestions à la fin DOIVENT être 3 COURTES questions de relance (max 10 mots) que l'utilisateur pourrait vous poser, SANS aucune explication. Format exact:\n===SUGGESTIONS===\n1. Question courte 1 ?\n2. Question courte 2 ?\n3. Question courte 3 ?\n" +
+      "8. CONSOLIDATION DES SOURCES : Si plusieurs points d'information (ex: une liste à puces) proviennent de la même source, NE PAS répéter le lien après chaque ligne. Citez la source une seule fois à la fin du paragraphe ou de la liste pour un rendu plus propre.";
 
     const aiRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
