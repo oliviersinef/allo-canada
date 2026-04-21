@@ -321,7 +321,7 @@ serve(async (req: Request) => {
       "   a) NE JAMAIS ajouter de texte d'introduction (pas de 'Voici votre CV reformaté...', pas de 'CV Canadien Reformulé', pas d'explication).\n" +
       "   b) NE JAMAIS inclure d'en-tête Allo Canada ou de branding.\n" +
       "   c) Commencer DIRECTEMENT par le nom complet du candidat en titre (# Prénom NOM), suivi de ses coordonnées.\n" +
-      "   d) Coordonnées : NE JAMAIS utiliser d'icônes (pas d'enveloppe, pas de téléphone, etc.). Utiliser du texte clair (Email : ..., Tél : ..., LinkedIn : ...).\n" +
+      "   d) COORDONNÉES : INTERDICTION ABSOLUE d'utiliser des icônes ou emojis (PAS de 📧, 📞, 📍, 🔗, 📱, etc.). Utiliser UNIQUEMENT du texte clair (Email : ..., Tél : ..., LinkedIn : ..., Portfolio : ..., Localisation : ...).\n" +
       "   e) Structure canadienne obligatoire dans cet ordre : Coordonnées → Profil professionnel (3 lignes max) → Compétences clés → Expérience professionnelle (du plus récent au plus ancien, avec réalisations en puces) → Formation → Langues → Certifications/Autres.\n" +
       "   f) STYLE ET VARIATION : À chaque génération, l'agent doit varier subtilement le style visuel (disposition des titres, types de puces, séparateurs comme des lignes horizontales --- ou des traits gras) pour que chaque CV paraisse unique tout en restant professionnel aux normes canadiennes. PAS de tableaux. PAS de couleurs vives.\n" +
       "   g) NE JAMAIS ajouter de texte de conclusion ou commentaire après le CV.\n" +

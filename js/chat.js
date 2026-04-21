@@ -1038,10 +1038,11 @@ async function deleteSession(id) {
         // 3. Reset UI immediately
         if (currentSessionId === id) {
             startNewChat();
-        } else {
-            renderSessions();
         }
-        showToast("Discussion supprimée");
+        
+        // Always refresh sessions list to update the sidebar
+        renderSessions();
+        showToast("Discussion supprimée avec succès");
     } catch (e) {
         console.error("Delete logic error:", e);
         showToast("Une erreur est survenue lors de la suppression", true);
