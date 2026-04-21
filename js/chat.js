@@ -1136,14 +1136,24 @@ function addMessageToUI(role, text, animate = true) {
         if (matchCount >= 3) {
             const cvBtnContainer = document.createElement('div');
             cvBtnContainer.className = 'cv-download-container';
+            cvBtnContainer.style.display = 'flex';
+            cvBtnContainer.style.gap = '8px';
+            cvBtnContainer.style.marginTop = '12px';
+            
             cvBtnContainer.innerHTML = `
                 <button class="btn-download-cv" onclick="exportCVToWord(this)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
-                    Télécharger le CV (Word)
+                    Word
+                </button>
+                <button class="btn-download-cv secondary" onclick="exportCVToPDF(this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    PDF
                 </button>
             `;
-            // Store raw markdown content on the button for export
-            cvBtnContainer.querySelector('.btn-download-cv').dataset.cvContent = text;
+            // Store raw markdown content on the buttons for export
+            cvBtnContainer.querySelectorAll('.btn-download-cv').forEach(btn => {
+                btn.dataset.cvContent = text;
+            });
             bubble.appendChild(cvBtnContainer);
         }
     }
@@ -1274,6 +1284,114 @@ window.exportCVToWord = function(btnElement) {
     URL.revokeObjectURL(url);
 
     showToast("CV téléchargé avec succès");
+};
+
+/**
+ * Export a CV message as a clean PDF document
+ */
+window.exportCVToPDF = function(btnElement) {
+    const rawContent = btnElement.dataset.cvContent;
+    if (!rawContent) return;
+
+    const htmlContent = formatText(rawContent);
+
+    const fullHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='utf-8'>
+            <title>CV Canadien</title>
+            <style>
+                @page {
+                    margin: 2.5cm 2cm;
+                    size: A4;
+                }
+                body {
+                    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+                    font-size: 11pt;
+                    line-height: 1.6;
+                    color: #1F2937;
+                    margin: 0;
+                    padding: 0;
+                }
+                h1 {
+                    font-size: 24pt;
+                    font-weight: 800;
+                    color: #111827;
+                    margin: 0 0 8pt 0;
+                    text-align: center;
+                }
+                h2 {
+                    font-size: 14pt;
+                    font-weight: 700;
+                    color: #111827;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    border-bottom: 2px solid #E5E7EB;
+                    padding-bottom: 4pt;
+                    margin: 20pt 0 10pt 0;
+                }
+                h3 {
+                    font-size: 12pt;
+                    font-weight: 700;
+                    color: #374151;
+                    margin: 12pt 0 4pt 0;
+                }
+                p {
+                    margin: 6pt 0;
+                }
+                ul {
+                    margin: 6pt 0 10pt 20pt;
+                    padding: 0;
+                }
+                li {
+                    margin-bottom: 4pt;
+                }
+                strong {
+                    color: #111827;
+                }
+                hr {
+                    border: none;
+                    border-top: 1px solid #E5E7EB;
+                    margin: 15pt 0;
+                }
+                .contact-info {
+                    text-align: center;
+                    font-size: 10pt;
+                    color: #4B5563;
+                    margin-bottom: 20pt;
+                }
+                @media print {
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            ${htmlContent}
+        </body>
+        </html>
+    `;
+
+    showToast("Préparation du PDF...");
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+    
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(fullHtml);
+    doc.close();
+    
+    setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+    }, 500);
 };
 
 /**
