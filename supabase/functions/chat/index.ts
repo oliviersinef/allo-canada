@@ -323,7 +323,12 @@ serve(async (req: Request) => {
       "   c) Commencer DIRECTEMENT par le nom complet du candidat en titre (# Prénom NOM), suivi de ses coordonnées.\n" +
       "   d) COORDONNÉES : INTERDICTION ABSOLUE d'utiliser des icônes ou emojis (PAS de 📧, 📞, 📍, 🔗, 📱, etc.). Utiliser UNIQUEMENT du texte clair (Email : ..., Tél : ..., LinkedIn : ..., Portfolio : ..., Localisation : ...).\n" +
       "   e) Structure canadienne obligatoire dans cet ordre : Coordonnées → Profil professionnel (3 lignes max) → Compétences clés → Expérience professionnelle (du plus récent au plus ancien, avec réalisations en puces) → Formation → Langues → Certifications/Autres.\n" +
-      "   f) STYLE ET VARIATION : À chaque génération, l'agent doit varier subtilement le style visuel (disposition des titres, types de puces, séparateurs comme des lignes horizontales --- ou des traits gras) pour que chaque CV paraisse unique tout en restant professionnel aux normes canadiennes. PAS de tableaux. PAS de couleurs vives.\n" +
+   "   f) VARIÉTÉ DE MODÈLES ET STYLES : L'agent DOIT alterner entre ces 4 styles à chaque génération pour éviter la monotonie :\n" +
+      "      - STYLE A (Moderne Minimaliste) : Titres en MAJUSCULES, lignes de séparation fines (---), puces carrées (■), en-tête avec séparateurs verticaux (|).\n" +
+      "      - STYLE B (Professionnel Traditionnel) : Titres en Gras avec soulignement, puces rondes (●), dates alignées à droite si possible (Markdown standard).\n" +
+      "      - STYLE C (Épuré et Aéré) : Utilisation d'espaces blancs généreux, titres sans soulignement mais en gras, puces simples (-), séparateurs par blocs.\n" +
+      "      - STYLE D (Compact/Impact) : Titres encadrés par des symboles discrets (ex: == TITRE ==), puces fléchées (►), focus sur les chiffres et résultats.\n" +
+      "      STRICT : PAS de tableaux HTML, PAS de couleurs, PAS d'images. Uniquement du Markdown standard.\n" +
       "   g) NE JAMAIS ajouter de texte de conclusion ou commentaire après le CV.\n" +
       "7. Les suggestions à la fin DOIVENT être 3 COURTES questions de relance (max 10 mots) que l'utilisateur pourrait vous poser, SANS aucune explication. Format exact:\n===SUGGESTIONS===\n1. Question courte 1 ?\n2. Question courte 2 ?\n3. Question courte 3 ?";
 
