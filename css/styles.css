@@ -1256,3 +1256,23 @@ footer {
     flex-shrink: 0;
 }
 
+/* File Attachment Tag in Messages */
+.message-file-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral-700);
+    margin-bottom: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.message-file-tag svg {
+    color: var(--primary);
+    opacity: 0.8;
+}
+
+
