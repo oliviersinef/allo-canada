@@ -331,7 +331,8 @@ serve(async (req: Request) => {
       "      STRICT : PAS de tableaux HTML, PAS de couleurs, PAS d'images. Uniquement du Markdown standard.\n" +
       "   g) NE JAMAIS ajouter de texte de conclusion ou commentaire après le CV.\n" +
       "7. Les suggestions à la fin DOIVENT être 3 COURTES questions de relance (max 10 mots) que l'utilisateur pourrait vous poser, SANS aucune explication. Format exact:\n===SUGGESTIONS===\n1. Question courte 1 ?\n2. Question courte 2 ?\n3. Question courte 3 ?\n" +
-      "8. CONSOLIDATION DES SOURCES : Si plusieurs points d'information (ex: une liste à puces) proviennent de la même source, NE PAS répéter le lien après chaque ligne. Citez la source une seule fois à la fin du paragraphe ou de la liste pour un rendu plus propre.";
+      "8. CONSOLIDATION DES SOURCES : Si plusieurs points d'information (ex: une liste à puces) proviennent de la même source, NE PAS répéter le lien après chaque ligne. Citez la source une seule fois à la fin du paragraphe ou de la liste pour un rendu plus propre.\n" +
+      "9. SOURCES SPÉCIFIQUES (FEER/CNP) : Pour toute information concernant les catégories FEER ou la recherche de code CNP, utilisez TOUJOURS ce lien comme source : [Trouver sa Classification nationale des professions (CNP)](https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/trouver-classification-nationale-professions.html).";
 
     const aiRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
