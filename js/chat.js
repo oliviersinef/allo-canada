@@ -271,9 +271,9 @@ async function handleChatSubmit(e) {
 
     } catch (error) {
         if (currentSessionId === activeSessionIdAtSubmit) {
-            console.error("Erreur chat:", error);
-            const displayError = error.message || "Une erreur est survenue.";
-            addMessageToUI('assistant', `${displayError}. Veuillez réessayer ou vérifier votre connexion.`);
+            console.error("Erreur chat détaillée:", error);
+            const displayError = sanitizeErrorMessage(error.message);
+            addMessageToUI('assistant', `${displayError} Veuillez réessayer ou vérifier votre connexion.`);
         }
     } finally {
         if (currentSessionId === activeSessionIdAtSubmit) {
@@ -1396,6 +1396,37 @@ window.exportCVToPDF = function(btnElement) {
 };
 
 /**
+ * Sanitize error messages to hide technical/sensitive info from users
+ */
+function sanitizeErrorMessage(message) {
+    if (!message) return "Une erreur est survenue.";
+    
+    const lowerMessage = message.toLowerCase();
+    
+    // List of patterns that indicate a technical/sensitive error
+    const sensitivePatterns = [
+        "lock:",
+        "auth-token",
+        "supabase",
+        "database",
+        "fetch",
+        "network",
+        "unexpected token",
+        "json",
+        "stole it"
+    ];
+    
+    const isSensitive = sensitivePatterns.some(pattern => lowerMessage.includes(pattern));
+    
+    if (isSensitive) {
+        return "Une erreur de connexion est survenue.";
+    }
+    
+    // Ensure no trailing dot if we're going to add one in the UI
+    return message.endsWith('.') ? message.slice(0, -1) : message;
+}
+
+/**
  * Format markdown-like text
  */
 function formatText(text) {
@@ -1451,7 +1482,18 @@ function toggleLoading(isLoading) {
  */
 async function getAIResponse(message, history) {
     try {
-        const { data: { user } } = await dbClient.auth.getUser(); // Ensure fresh user state
+        let user = null;
+        try {
+            // Use a timeout or catch for getUser to prevent lock errors from blocking the UI
+            const { data, error: authError } = await dbClient.auth.getUser();
+            if (!authError && data) {
+                user = data.user;
+            } else if (authError) {
+                console.warn("Auth state check warning (non-blocking):", authError.message);
+            }
+        } catch (e) {
+            console.warn("Critical auth check failure (proceeding as guest):", e);
+        }
 
         const response = await fetch(`https://cmgzoojrbqpnxmadwkdx.supabase.co/functions/v1/chat`, {
             method: 'POST',
