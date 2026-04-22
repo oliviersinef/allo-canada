@@ -373,12 +373,14 @@ function renderUsersTable(filter = '') {
 
     const filtered = usersList.filter(u => 
         (u.full_name || '').toLowerCase().includes(searchTerm) || 
+        (u.email || '').toLowerCase().includes(searchTerm) || 
         (u.country || '').toLowerCase().includes(searchTerm)
     );
 
     tbody.innerHTML = filtered.map(u => `
         <tr>
             <td style="font-weight:600">${u.full_name || 'Inconnu'}</td>
+            <td>${u.email || '-'}</td>
             <td>${u.phone || '-'}</td>
             <td>${u.country || '-'}</td>
             <td>${new Date(u.created_at).toLocaleDateString()}</td>
