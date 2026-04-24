@@ -159,13 +159,62 @@ serve(async (req: Request) => {
             url: 'https://applications.wes.org/createaccount/home/select-eval-type?ln=1',
             title: 'Création du Compte WES for EDE (Évaluation des Diplômes d\'Études)',
             content: `CRÉATION DU COMPTE WES POUR L'ÉVALUATION DES DIPLÔMES (EDE) :
-            WES is one of the organizations designated by IRCC to perform the ECA required for immigration to Canada.
-            ...`
+            WES est l'un des organismes désignés par IRCC pour effectuer l'EDE requise pour l'immigration au Canada.`
           },
           {
             url: 'https://www.guichetemplois.gc.ca/trouverunemploi/concepteur-cv',
             title: 'Concepteur de CV - Guichet-Emplois',
             content: "Le Concepteur de CV officiel du Guichet-Emplois (Gouvernement du Canada) permet de concevoir gratuitement un CV aux normes canadiennes. Il propose des modèles adaptés aux professionnels expérimentés (modèle traditionnel) ou aux nouveaux arrivants et jeunes diplômés. L'outil aide à utiliser la terminologie appropriée et à aligner ses compétences avec les exigences des employeurs canadiens."
+          },
+          {
+            url: 'https://www.nvimmigration.ca/67-calculator/',
+            title: "Calculateur d'admissibilité Entrée Express (67 points / 100)",
+            content: "Pour immigrer au Canada en tant que travailleur qualifié (fédéral) (TQF) dans le cadre d'Entrée express, vous devez obtenir un minimum de 67 points sur 100. Ces points sont attribués selon six facteurs de sélection : les compétences linguistiques, les études, l'expérience de travail, l'âge, l'emploi réservé au Canada et la faculté d'adaptation. Si votre score est inférieur à 67, vous n'êtes pas admissible à ce programme spécifique.\n\nINSTRUCTION AGENT : Vous pouvez analyser et comprendre comment calculer les points d'admissibilité pour aider les candidats à estimer leur score directement dans le chat. Citez toujours le lien pour vérification."
+          },
+          {
+            url: 'https://www.cic.gc.ca/francais/immigrer/qualifie/scg-outil.asp',
+            title: "Outil de simulation du Système de classement global (SCG) - Entrée express",
+            content: "L'outil du Système de classement global (SCG) vous permet d'estimer votre note si vous êtes admissible à l'Entrée express. Le SCG évalue votre profil en fonction de facteurs tels que vos compétences, vos études, vos aptitudes linguistiques, votre expérience de travail et d'autres critères. Ce score détermine votre rang dans le bassin d'Entrée express.\n\nINSTRUCTION AGENT : Maîtrisez le fonctionnement de cette simulation pour aider les candidats à estimer leur score SCG depuis l'interface et citez le lien pour plus d'informations."
+          },
+          {
+            url: 'https://www.canada.ca/fr/immigration-refugies-citoyennete/services/outil-venir-canada-immigration-entree-express.html',
+            title: "Venir au Canada : Outil de vérification de l'admissibilité",
+            content: "L'outil 'Venir au Canada' est le point de départ officiel pour déterminer si vous êtes admissible à l'un des programmes d'immigration, notamment l'Entrée express. En répondant à une série de questions sur vos études, vos compétences linguistiques et votre expérience, l'outil vous indiquera les programmes auxquels vous pourriez être admissible."
+          },
+          {
+            url: 'https://www.canada.ca/fr/immigration-refugies-citoyennete/services/demande/compte.html',
+            title: "Compte sécurisé d'IRCC : Création et Connexion",
+            content: "Le compte sécurisé d'IRCC vous permet de commencer une demande, de présenter et de payer pour votre demande, de recevoir des messages concernant votre demande et de vérifier l'état de votre demande en ligne. Vous pouvez utiliser une Clé de session (Clé de GC) ou un Partenaire de connexion pour y accéder."
+          },
+          {
+            url: 'https://arrima.immigration-quebec.gouv.qc.ca/monespacepublic/calculette/sommaire',
+            title: "Calculatrice de score Arrima - Programme régulier des travailleurs qualifiés (PRTQ)",
+            content: "La calculette Arrima permet d'estimer le pointage que vous pourriez obtenir lors d'une déclaration d'intérêt dans le cadre du Programme régulier des travailleurs qualifiés (PRTQ) du Québec. Le pointage est basé sur des facteurs comme l'âge, la scolarité, l'expérience de travail, les compétences linguistiques et les offres d'emploi validées.\n\nINSTRUCTION AGENT : Utilisez cette ressource pour aider les candidats à calculer leur score Arrima directement dans le chat et fournissez le lien pour confirmation."
+          },
+          {
+            url: 'https://www.quebec.ca/immigration/services-en-ligne',
+            title: "Portail des services en ligne d'immigration - Gouvernement du Québec",
+            content: "Le portail officiel du Gouvernement du Québec regroupe l'accès aux services en ligne d'immigration, notamment Arrima pour la déclaration d'intérêt, le portail employeurs, et les demandes de sélection temporaire ou permanente."
+          },
+          {
+            url: 'https://arrima.immigration-quebec.gouv.qc.ca/',
+            title: "Accès Direct Portail Arrima",
+            content: "L'espace public Arrima est la plateforme officielle pour soumettre une déclaration d'intérêt pour immigrer au Québec, s'inscrire à des services d'accompagnement ou répondre à des invitations du Ministère de l'Immigration, de la Francisation et de l'Intégration (MIFI)."
+          },
+          {
+            url: 'https://www.icascanada.ca/',
+            title: "Évaluation de diplôme (ECA) par ICAS Canada",
+            content: "L'International Credential Assessment Service of Canada (ICAS) est l'un des organismes désignés par IRCC pour fournir des rapports d'évaluation des diplômes d'études (EDE) aux fins d'immigration. Il évalue les titres de compétences étrangers par rapport aux normes canadiennes."
+          },
+          {
+            url: 'https://learn.utoronto.ca/comparative-education-service',
+            title: "Comparative Education Service (CES) - Université de Toronto",
+            content: "Le Comparative Education Service (CES) de l'Université de Toronto est un organisme désigné par IRCC pour l'évaluation des diplômes d'études (EDE). Il fournit des rapports détaillés nécessaires pour les programmes d'immigration fédéraux comme l'Entrée express."
+          },
+          {
+            url: 'https://www.alberta.ca/iqas-immigration',
+            title: "International Qualifications Assessment Service (IQAS) - Alberta",
+            content: "L'International Qualifications Assessment Service (IQAS) est un service du gouvernement de l'Alberta désigné par IRCC pour effectuer des évaluations de diplômes étrangers (EDE) aux fins d'immigration. Ses rapports sont reconnus dans tout le Canada."
           }
         ];
 
