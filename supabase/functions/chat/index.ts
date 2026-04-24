@@ -315,6 +315,22 @@ serve(async (req: Request) => {
             url: 'https://www.canadim.com/',
             title: 'CANADIM (Ressources Immigration & Emploi)',
             content: "Offre des informations précieuses sur les programmes d'immigration liés à l'emploi et des conseils pour naviguer sur le marché du travail canadien en tant que candidat étranger."
+          },
+          {
+            url: 'https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/trouver-classification-nationale-professions/liste-frequente.html',
+            title: 'Liste de quelques codes CNP 2021 fréquents',
+            content: `RÉFÉRENCES DE CODES CNP 2021 FRÉQUENTS (Source officielle) :
+            - 52120 : Graphistes et illustrateurs/illustratrices (FEER 2) - EXEMPLE : Graphiste publicitaire, illustrateur.
+            - 21231 : Ingénieurs/ingénieures en logiciel et concepteurs/conceptrices (FEER 1).
+            - 21232 : Développeurs/développeuses et programmeurs/programmeuses de logiciels (FEER 1).
+            - 21234 : Concepteurs/conceptrices et développeurs/développeuses Web (FEER 1).
+            - 21222 : Spécialistes en informatique (FEER 1).
+            - 11200 : Professionnels/professionnelles en ressources humaines (FEER 1).
+            - 12200 : Adjoints administratifs/adjointes administratives (FEER 2).
+            - 62020 : Superviseurs/superviseures des services de restauration (FEER 2).
+            - 31301 : Infirmiers autorisés/infirmières autorisées et infirmiers psychiatriques autorisés/infirmières psychiatriques autorisées (FEER 1).
+            - 41200 : Professeurs/professeures et chargés/chargées de cours au niveau universitaire (FEER 1).
+            IMPORTANT : Le 2ème chiffre du code indique le FEER. Exemple : 52120 -> 2 est le 2ème chiffre -> FEER 2.`
           }
         ];
 
@@ -481,7 +497,8 @@ serve(async (req: Request) => {
       "   g) NE JAMAIS ajouter de texte de conclusion ou commentaire après le CV.\n" +
       "7. Les suggestions à la fin DOIVENT être 3 COURTES questions de relance (max 10 mots) que l'utilisateur pourrait vous poser, SANS aucune explication. Format exact:\n===SUGGESTIONS===\n1. Question courte 1 ?\n2. Question courte 2 ?\n3. Question courte 3 ?\n" +
       "8. CONSOLIDATION DES SOURCES : Si plusieurs points d'information (ex: une liste à puces) proviennent de la même source, NE PAS répéter le lien après chaque ligne. Citez la source une seule fois à la fin du paragraphe ou de la liste pour un rendu plus propre.\n" +
-      "9. SOURCES SPÉCIFIQUES (FEER/CNP) : Pour toute information concernant les catégories FEER ou la recherche de code CNP, utilisez TOUJOURS ce lien comme source : [Trouver sa Classification nationale des professions (CNP)](https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/trouver-classification-nationale-professions.html).";
+      "9. SOURCES SPÉCIFIQUES (FEER/CNP) : Pour toute information concernant les catégories FEER ou la recherche de code CNP, utilisez TOUJOURS ce lien comme source : [Trouver sa Classification nationale des professions (CNP)](https://www.canada.ca/fr/immigration-refugies-citoyennete/services/immigrer-canada/trouver-classification-nationale-professions.html).\n" +
+      "10. RÈGLE CRITIQUE CNP : Ne JAMAIS inventer ou deviner de code CNP ou de catégorie FEER. Si l'information exacte n'est pas dans le Context, tu DOIS dire que tu ne peux pas confirmer le code avec certitude et inviter l'utilisateur à vérifier via le lien officiel fourni au point 9. L'exactitude des codes CNP est vitale.";
 
     const aiRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
