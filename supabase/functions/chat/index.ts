@@ -267,9 +267,9 @@ serve(async (req: Request) => {
             content: "Le réseau social professionnel numéro 1. Indispensable pour le réseautage, la veille stratégique sur les entreprises et pour postuler directement auprès des recruteurs et responsables RH."
           },
           {
-            url: 'https://www.jobs.gc.ca/',
+            url: 'https://emploisfp-psjobs.cfp-psc.gc.ca/psrs-srfp/applicant/page2440?fromMenu=true&toggleLanguage=fr',
             title: 'Emplois GC (Fonction publique fédérale)',
-            content: "Le portail dédié au recrutement au sein du gouvernement fédéral du Canada. Pour postuler à des postes de fonctionnaires dans les différents ministères et agences fédérales."
+            content: "Le portail officiel pour le recrutement au sein du gouvernement fédéral du Canada. Ce site permet de postuler à des postes de fonctionnaires dans les différents ministères et agences fédérales."
           },
           {
             url: 'https://www.sante.gouv.qc.ca/',
