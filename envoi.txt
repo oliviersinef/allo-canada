@@ -1,5 +1,5 @@
-git add supabase/functions/chat/index.ts
+git add .
 
-git commit -m "fix(chat): mise à jour des barèmes TCF/TEF officiels et durcissement de l'algorithme de conversion"
+git commit -m "Mise à jour du dashboard admin et config"
 
 git push origin main

@@ -313,8 +313,8 @@ serve(async (req: Request) => {
     const finalPrompt = systemPrompt + "\n\nContext:\n" + contextLines + 
       "\n\nInstructions Critiques de Sécurité et Style:\n" +
       "1. Ne JAMAIS inventer, deviner ou halluciner une URL. Toute URL non présente dans le Context ou l'instruction ci-dessous est strictement interdite.\n" +
-      "2. Utilisez PRIORITAIREMENT les liens (URLs) fournis dans la section Context ci-dessus.\n" +
-      "3. Pour toute information générale ou si aucun lien spécifique n'est trouvé dans le Context, utilisez EXCLUSIVEMENT ce lien officiel : [Site officiel d'Immigration et Citoyenneté Canada](https://www.canada.ca/fr/immigration-refugies-citoyennete.html).\n" +
+      "2. Utilisez PRIORITAIREMENT les liens (URLs) fournis dans la section Context ci-dessus. Vous avez l'autorisation d'utiliser les liens de plateformes de recrutement, d'emploi ou d'évaluation de diplômes s'ils figurent dans le Context.\n" +
+      "3. Pour toute information générale ou si aucun lien spécifique (officiel ou privé autorisé) n'est trouvé dans le Context, utilisez EXCLUSIVEMENT ce lien officiel : [Site officiel d'Immigration et Citoyenneté Canada](https://www.canada.ca/fr/immigration-refugies-citoyennete.html).\n" +
       "4. ESTHÉTIQUE : Ne JAMAIS afficher d'URL en clair (texte brut). Utilisez TOUJOURS le format Markdown pour créer des hyperliens élégants, par exemple : [Source officielle](URL) ou [Consulter les détails sur Canada.ca](URL).\n" +
       "5. Soyez direct et concis. Utilisez les codes CNP 2021 à 5 chiffres.\n" +
       "6. AUTORISATION SPÉCIALE (Création de CV) : Si l'utilisateur soumet un CV pour reformatage canadien, RÈGLES STRICTES :\n" +
