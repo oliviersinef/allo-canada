@@ -215,6 +215,106 @@ serve(async (req: Request) => {
             url: 'https://www.alberta.ca/iqas-immigration',
             title: "International Qualifications Assessment Service (IQAS) - Alberta",
             content: "L'International Qualifications Assessment Service (IQAS) est un service du gouvernement de l'Alberta désigné par IRCC pour effectuer des évaluations de diplômes étrangers (EDE) aux fins d'immigration. Ses rapports sont reconnus dans tout le Canada."
+          },
+          {
+            url: 'https://www.jobbank.gc.ca/',
+            title: 'Job Bank (Guichet-Emplois Canada)',
+            content: "Le site officiel du gouvernement du Canada pour la recherche d'emploi. C'est l'outil de référence pour consulter des milliers d'offres d'emploi à travers tout le pays, obtenir des rapports sur les tendances du marché du travail et utiliser l'outil de jumelage emploi. Indispensable pour les candidats à l'immigration."
+          },
+          {
+            url: 'https://www.indeed.ca/',
+            title: 'Indeed Canada',
+            content: "La plus grande plateforme généraliste de recherche d'emploi au Canada. Elle regroupe des millions d'offres provenant de milliers de sites d'entreprises et de cabinets de recrutement. Très efficace pour une recherche multi-sectorielle."
+          },
+          {
+            url: 'https://www.workopolis.com/',
+            title: 'Workopolis',
+            content: "Un des sites d'emploi les plus anciens et les plus respectés au Canada. Il offre des outils de recherche avancés et des conseils de carrière pour aider les candidats à trouver des opportunités correspondant à leur profil."
+          },
+          {
+            url: 'https://www.monster.ca/',
+            title: 'Monster Canada',
+            content: "Une plateforme de recrutement globale avec une forte présence au Canada. Particulièrement efficace pour les professionnels et les secteurs techniques."
+          },
+          {
+            url: 'https://www.glassdoor.ca/',
+            title: 'Glassdoor Canada',
+            content: "En plus de la recherche d'offres, Glassdoor permet de consulter les avis anonymes des employés sur les entreprises, les échelles salariales et les questions posées lors des entretiens d'embauche."
+          },
+          {
+            url: 'https://www.quebec.ca/emploi',
+            title: 'Guichet-Emplois Québec',
+            content: "Le portail officiel du Gouvernement du Québec pour l'emploi. Il donne accès aux services de Québec Emploi, aux programmes de formation et aux conseils pour intégrer le marché du travail québécois."
+          },
+          {
+            url: 'https://www.jobillico.com/',
+            title: 'Jobillico',
+            content: "Une plateforme de recrutement proactive très populaire au Québec qui met en relation les candidats et les entreprises en fonction de la compatibilité de leurs valeurs et de la culture d'entreprise."
+          },
+          {
+            url: 'https://www.talent.com/',
+            title: 'Talent.com Canada',
+            content: "Un agrégateur d'emploi puissant qui centralise les offres de nombreux sites. Il propose également d'excellents outils de calcul de salaire net après impôts pour chaque province canadienne."
+          },
+          {
+            url: 'https://www.eluta.ca/',
+            title: 'Eluta.ca',
+            content: "Le moteur de recherche officiel du projet 'Canada's Top 100 Employers'. Il indexe les offres directement sur les sites web des employeurs, offrant souvent des opportunités non listées sur les grands portails."
+          },
+          {
+            url: 'https://www.linkedin.com/jobs',
+            title: 'LinkedIn Jobs Canada',
+            content: "Le réseau social professionnel numéro 1. Indispensable pour le réseautage, la veille stratégique sur les entreprises et pour postuler directement auprès des recruteurs et responsables RH."
+          },
+          {
+            url: 'https://www.jobs.gc.ca/',
+            title: 'Emplois GC (Fonction publique fédérale)',
+            content: "Le portail dédié au recrutement au sein du gouvernement fédéral du Canada. Pour postuler à des postes de fonctionnaires dans les différents ministères et agences fédérales."
+          },
+          {
+            url: 'https://www.sante.gouv.qc.ca/',
+            title: 'Emploi Santé Québec',
+            content: "La référence pour les opportunités d'emploi dans le réseau de la santé et des services sociaux au Québec. Idéal pour les infirmiers, médecins, techniciens et personnel administratif du secteur."
+          },
+          {
+            url: 'https://www.emplois.laval.ca/',
+            title: 'Emploi Laval',
+            content: "Site dédié aux opportunités d'emploi au sein de la Ville de Laval et de ses organismes rattachés."
+          },
+          {
+            url: 'https://www.emploi-montreal.net/',
+            title: 'Emploi Montréal',
+            content: "Ressources et offres d'emploi ciblées sur la région métropolitaine de Montréal, incluant des conseils spécifiques aux nouveaux arrivants."
+          },
+          {
+            url: 'https://www.clicemploi.ca/',
+            title: 'Clic Emploi (Québec)',
+            content: "Outil gouvernemental québécois facilitant l'accès aux services d'aide à l'emploi, à la formation et à l'orientation professionnelle."
+          },
+          {
+            url: 'https://www.jobboom.com/',
+            title: 'Jobboom',
+            content: "Le plus grand site de recrutement au Québec pour les postes professionnels et techniques. Très utilisé par les PME et grandes entreprises québécoises."
+          },
+          {
+            url: 'https://placement.emploiquebec.gouv.qc.ca/',
+            title: 'Placement étudiant (Québec)',
+            content: "Service d'Emploi-Québec dédié aux étudiants et jeunes diplômés pour trouver des stages, des emplois d'été ou un premier emploi de carrière."
+          },
+          {
+            url: 'https://www.bdc.ca/',
+            title: 'BDC (Banque de développement du Canada)',
+            content: "Offre des conseils et des ressources pour les entrepreneurs au Canada, incluant des guides sur le recrutement et la gestion des talents."
+          },
+          {
+            url: 'https://www.immigrantquebec.com/',
+            title: 'Immigrant Québec',
+            content: "Ressource majeure pour les nouveaux arrivants. Propose une section emploi riche, des guides de recherche d'emploi et organise des salons de recrutement spécialisés."
+          },
+          {
+            url: 'https://www.canadim.com/',
+            title: 'CANADIM (Ressources Immigration & Emploi)',
+            content: "Offre des informations précieuses sur les programmes d'immigration liés à l'emploi et des conseils pour naviguer sur le marché du travail canadien en tant que candidat étranger."
           }
         ];
 
